@@ -1,0 +1,11 @@
+.includepath
+.project
+.classpath
+.settings
+^MYMETA\.yml$
+^MYMETA\.json$
+Build
+_build
+_blib
+blib
+.bak
