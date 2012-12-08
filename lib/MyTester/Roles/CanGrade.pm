@@ -88,7 +88,17 @@ has 'rubric' => (
    }
 );
 
-Mapping of test status keys to grades. 
+Mapping of test status keys to grades.
+
+=head3 Notes
+
+=over
+
+=item * L<MyTester::TestStatus> objects are converted to their 'key' value 
+before actually calling C<getGrade>. This kind of translations is B<not> done in 
+C<setGrade>.
+
+=back
 
 =cut
 
@@ -99,36 +109,9 @@ has 'rubric' => (
    default => sub { {} },
    handles => {
       setGrade => 'set',
+      getGrade => 'get'
    }
 );
-
-################################################################################
-# Methods
-################################################################################
-
-=pod
-
-=head1 Required methods
-
-=head2 getGrade
-
-Returns whatever grade should be given for the current status of the consuming 
-class. Can be undef.
-
-=head3 Returns
-
-Whatever grade should be given for the current status of the consuming class.
-Can be undef.
-
-=head3 Decorations
-
-L<MyTester::TestStatus> objects are converted to their 'key' value before 
-actually calling C<getGrade>. This kind of translations is B<not> done in 
-C<setGrade>
-
-=cut
-
-requires qw(getGrade);
 
 around 'getGrade' => sub {
    my ($orig, $self, @args) = @_;
@@ -146,6 +129,10 @@ around 'getGrade' => sub {
    return $self->$orig(@newArgs);
 };
 
+################################################################################
+# Methods
+################################################################################
+
 =pod
 
 =head1 Provided Methods
@@ -155,14 +142,16 @@ around 'getGrade' => sub {
 Conveniene method to directly retrieve the grade msg associated w/ a particular
 L<MyTester::TestStatus>.
 
-=head3 Parameters
+B<Parameters>
 
-The L<MyTester::TestStatus> object whose msg you wish to retrieve. 
+=over
 
-=head3 Returns
+=item * [0]: The L<MyTester::TestStatus> object whose msg you wish to retrieve. 
 
-The msg associated w/ the provided status. Can be undef if you didn't map the 
-given status to a grade in the C<rubric>
+=back
+
+B<Returns:> The msg associated w/ the provided status. Can be undef if you 
+didn't map the given status to a grade in the C<rubric>.
 
 =cut
 
@@ -177,14 +166,16 @@ method getGradeMsg (MyTester::TestStatus $testStatus) {
 Conveniene method to directly retrieve the grade val associated w/ a particular
 L<MyTester::TestStatus>.
 
-=head3 Parameters
+B<Parameters>
 
-The L<MyTester::TestStatus> object whose val you wish to retrieve. 
+=over
 
-=head3 Returns
+=item * [0]: The L<MyTester::TestStatus> object whose val you wish to retrieve.
 
-The val associated w/ the provided status. Can be undef if you didn't map the 
-given status to a grade in the C<rubric>
+=back 
+
+B<Returns:> The val associated w/ the provided status. Can be undef if you 
+didn't map the given status to a grade in the C<rubric>.
 
 =cut
 

@@ -10,7 +10,7 @@ my @classes = qw(
    TestOven TestStatus 
 );
 my @roles = qw(
-   CanGrade Identifiable FormatsGrade Testable Provider Dependant
+   CanGrade Identifiable Testable Provider Dependant
 );
 plan tests => (scalar @classes) + (scalar @roles) + 1;
 

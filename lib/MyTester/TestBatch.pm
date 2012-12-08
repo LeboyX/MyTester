@@ -1,9 +1,48 @@
 #!perl
+
+=pod
+
+=head1 Name
+
+MyTester::TestBatch - Represents a set of tests to be run concurrently (like 
+cooking a batch of cookies in the oven). 
+
+=head1 Version
+
+No set version right now
+
+=head1 Synopsis
+
+   my $tb = MyTester::TestBatch->new();
+   
+   my @tests = ();
+   push(@tests, MyTester::Roles::Mock::SleepyTest->new(
+      interval => 2
+   )) for 1..3;
+   
+   $tb->addTest(@tests);
+   $tb->delTests($tests[0]);
+   
+   $tb->cookBatch(); # Will take 2s, b/c we have two 2s tests run in parallel
+   
+=head1 Description
+
+This of tests as cookies and a L<MyTester::TestBatch> as the cookie sheet they
+go on in the oven. Each tests begin at (or nearly at) the same time as all the
+other tests. In practice, this won't be perfect b/c of the overhead needed to
+fork and manage the various tests. Furthermore, if you don't want to burden
+the system, you can limit how many tests are run at a given time.  
+
+See L<Parallel::ForkManager> for details on how we manage our forked tests. 
+
+=cut
+
 package MyTester::TestBatch;
 use 5.010;
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;
+use Moose::Util::TypeConstraints;
 
 ################################################################################
 # Imports
@@ -20,20 +59,62 @@ use Parallel::ForkManager;
 # Constants
 ################################################################################
 
-
 ################################################################################
 # Attributes
 ################################################################################
 
+=pod
+
+=head1 Public Attributes
+
+=head2 testsToRunAtOnce
+
+   has 'testsToRunAtOnce' => (
+      isa => 'Int',
+      is => 'rw',
+      trigger => sub {
+         my ($self, $val) = @_;
+         croak "'testsToRunAtOnce' must be a positive int" if $val < 1;
+      }
+   );
+
+How many tests to run in parallel at once. If you don't set this, it'll default
+at runtime to the number of tests in this batch.
+
+=cut
+
 has 'testsToRunAtOnce' => (
    isa => 'Int',
    is => 'rw',
+   predicate => '_userSetTestsToRunAtOnce',
    trigger => sub {
       my ($self, $val) = @_;
       croak "'testsToRunAtOnce' must be a positive int" if $val < 1;
    }
 );
 
+=pod
+
+=head2 tests
+
+   has 'tests' => ( 
+      isa => 'ArrayRef[MyTester::Roles::Testable]',
+      traits => [qw(Array)],
+      is => 'ro',
+      default => sub { [] },
+      handles => {
+         addTest => 'push',
+         getTests => 'elements',
+         numTests => 'count',
+         clearTests => 'clear',
+      },
+      writer => '_tests'
+   );
+
+Tests to L</cook> in this batch. 
+
+=cut
+   
 has 'tests' => ( 
    isa => 'ArrayRef[MyTester::Roles::Testable]',
    traits => [qw(Array)],
@@ -51,22 +132,77 @@ has 'tests' => (
    writer => '_tests'
 );
 
+=pod
+
+=head2 cooked
+
+   has 'cooked' => (
+      isa => 'Bool',
+      is => 'ro',
+      default => 0,
+   );
+
+Whether this batch has fully cooked (all tests run/completed). Set internally.
+
+=cut
+
 has 'cooked' => (
    isa => 'Bool',
    is => 'ro',
+   default => 0,
    writer => '_cooked',
-   default => 0
 );
 
 ################################################################################
 # Methods
 ################################################################################
 
+=pod
+
+=head1 Public Methods
+
+=head2 getTestById
+
+Returns the L<MyTester::Roles::Testable> object w/ the given id. Can be undef
+if the test doesn't exist in this batch.
+
+B<Parameters>
+
+=over
+
+=item * [0]: Id of the test to look for
+
+=back
+
+B<Returns:> the L<MyTester::Roles::Testable> object w/ the given id. Can be 
+undef if the test doesn't exist in this batch.
+
+=cut
+
 method getTestById (Str $id!) {
    return $self->_findTestBy(sub { 
       $_->id() eq $id;
    });
 };
+
+=pod
+
+=head2 delTestById
+
+Deletes the test associated w/ the given id. If the test doesn't exist in this
+batch, this is a no-op. 
+
+B<Parameters>
+
+=over
+
+=item [0]: The id of the test to delete. 
+
+=back
+
+B<Returns:> C<$self>
+
+=cut
 
 method delTestById (Str $id!) {
    my $index = $self->_findTestIndexBy(sub {
@@ -77,9 +213,47 @@ method delTestById (Str $id!) {
    return $self;
 }
 
+=pod
+
+=head2 delTest
+
+Deletes the test. If the test doesn't exist in this batch, this is a no-op. 
+
+B<Parameters>
+
+=over
+
+=item [0]: The L<MyTester::Roles::Testable> test to delete. 
+
+=back
+
+B<Returns:> C<$self>
+
+=cut
+
 method delTest (MyTester::Roles::Testable $t!) {
    return $self->delTestById($t->id());
 }
+
+=pod
+
+=head2 hasTest
+
+B<Parameters>
+
+=over
+
+=item $test => L<MyTester::Roles::Testable>: Test to find
+
+=item $id => Str: Id of test to find
+
+=back
+
+One of the above parameters must be provided or this will croak. 
+
+B<Returns:> True if test exists. False otherwise. 
+
+=cut
 
 method hasTest (MyTester::Roles::Testable :$test?, Str :$id?) {
    my $has;
@@ -97,6 +271,22 @@ method hasTest (MyTester::Roles::Testable :$test?, Str :$id?) {
    
    return $has;
 }
+
+=pod
+
+=head2 cookBatch
+
+Runs all the tests in this, with as many running at a given time as is set in
+L</testsToRunAtOnce>. 
+
+=head3 Decorations
+
+=head4 before
+
+If you haven't yet set L</testsToRunAtOnce> when calling this method, it will
+be set to however many tests are currently in this batch. 
+
+=cut
 
 method cookBatch () {
    my $fm = Parallel::ForkManager->new($self->testsToRunAtOnce());
@@ -124,7 +314,7 @@ method cookBatch () {
 
 before 'cookBatch' => sub {
    my ($self) = @_;
-   if (!defined $self->testsToRunAtOnce) {
+   if (!$self->_userSetTestsToRunAtOnce()) {
       $self->testsToRunAtOnce($self->numTests());
    }
 };
@@ -132,6 +322,18 @@ before 'cookBatch' => sub {
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
+
+=pod
+
+=head1 Roles Consumed
+
+=over
+
+=item MyTester::Roles::Identifiable
+
+=back
+
+=cut
 
 with qw(MyTester::Roles::Identifiable);
 

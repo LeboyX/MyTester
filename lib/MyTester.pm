@@ -3,7 +3,7 @@ package MyTester;
 use Moose;
 our $VERSION = "0.0.1";
 
-our $TEST_POD_COVERAGE = 0;
+our $TEST_POD_COVERAGE = 1;
 
 1;
 
