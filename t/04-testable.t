@@ -9,10 +9,10 @@ use Test::More;
 
 use TryCatch;
 
-use MyTester::SleepyTest;
 use MyTester::TestStatus;
 use MyTester::Roles::Testable;
 use MyTester::Roles::Mock::EmptyTest;
+use MyTester::Roles::Mock::SleepyTest;
 
 ################################################################################
 

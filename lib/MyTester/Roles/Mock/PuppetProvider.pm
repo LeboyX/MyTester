@@ -32,6 +32,8 @@ method.
 =item * C<test()> will set this instance up to fullfill/!fullfill its dependency
 to whatever you set L<flagForDependants> to.
 
+=back
+
 =cut
 
 package MyTester::Roles::Mock::PuppetProvider;
@@ -99,9 +101,28 @@ has '_toProvide' => (
 # Methods
 ################################################################################
 
+=pod
+
+=head1 Public Methods
+
+=head2 test
+
+Sets the value we'll return from L<provides> to C<flagForDependants>
+
+=cut
+
 method test { 
    $self->_toProvide($self->flagForDependants);
 }
+
+=pod
+
+=head2 provides
+
+To be called after C<test>: will return whatever you set C<flagForDependants> 
+to.
+
+=cut
 
 method provides () {
    return $self->_toProvide();
