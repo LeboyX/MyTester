@@ -57,6 +57,25 @@ use MyTester::Roles::Provider;
 # Methods
 ################################################################################
 
+=pod
+
+=head1 Consumed Public Methods
+
+=head2 handleFailedProviders
+
+Just calls C<$self-E<gt>fail($MyTester::TestStatus::DEPENDENCY_UNSATISFIED)>, as
+the very fact that this method was called means that some dependencies failed.
+
+=head3 Parameters
+
+=over
+
+=item * Slurpy @array of L<MyTester::Roles::Provider> objects
+
+=back
+
+=cut
+
 method handleFailedProviders (MyTester::Roles::Provider @failedProviders) {
    $self->fail($MyTester::TestStatus::DEPENDENCY_UNSATISFIED);
 }
