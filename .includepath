@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<includepath>
-  <includepathentry path="/home/jasonkilroy/perl5/lib/perl5" />
-  <includepathentry path="/home/jasonkilroy/perl5/lib/perl5/i686-linux-gnu-thread-multi-64int" />
-  <includepathentry path="${WORKSPACE_LOC}" />
-  <includepathentry path="/home/jasonkilroy/MyTesterWorkspace/MyTester/lib" />
-</includepath>
-
