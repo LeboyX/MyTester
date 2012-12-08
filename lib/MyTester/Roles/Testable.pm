@@ -135,7 +135,8 @@ has 'fail' => (
    );
 
 Used to determine whether this test has been run or not. After calling L</test>,
-this will be true.
+this will be true. If you call L</reset>, this will go back to false until 
+L</test> is run again.
 
 =cut
 

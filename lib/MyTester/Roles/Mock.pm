@@ -15,6 +15,6 @@ implementations of the various roles under MyTester::Roles. they are used
 primarily for testing purposes to exercise role functionality w/o incurring
 the overhead of continually writing simple consumers of each role. The roles
 contained w/in this namespace are not explicitly tested, as their intended
-purpose was to aid testing.  
+purpose is to aid testing.  
 
 =cut
