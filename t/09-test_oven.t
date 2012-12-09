@@ -99,11 +99,12 @@ my %tests = (
       $oven->delTest($b1Tests[1]);
       is($oven->numTestsInCurBatch(), 0, 
          "Test from first batch deleted by id");
+         
+      $oven->delTest($b1Tests[0]);
+      pass("Deleting non-existent test did nothing");
       
-      dies_ok(sub { $oven->getTestBatch($b1Tests[0]) }, 
-         "No batch for b1 test 1");
-      dies_ok(sub { $oven->getTestBatch($b1Tests[1]) }, 
-         "No batch for b1 test 2");
+      is($oven->getTestBatch($b1Tests[0]), undef, "No batch for b1 test 1");
+      is($oven->getTestBatch($b1Tests[1]), undef, "No batch for b1 test 2");
          
       ok(!$oven->hasTest($b1Tests[0]), "b1Test1 doesn't exist in oven");
       ok(!$oven->hasTest($b1Tests[1]), "b1Test2 doesn't exist in oven");
@@ -267,7 +268,7 @@ my %tests = (
       $oven->addTest($dependant);
       $oven->addTestBefore($dependant, $provider, $nonProvider);
       
-      is($oven->getTestDepCount($dependant), 1, "1 dependency added");
+      is($dependant->providerCount(), 1, "1 dependency added");
       
       $oven->cookBatches();
       for ($oven->getBatch(0)->getTests()) {
@@ -295,7 +296,7 @@ my %tests = (
       $oven->addTest($provider);
       $oven->addTestAfter($provider, $dependant);
       
-      is($oven->getTestDepCount($dependant), 1, "1 dependency added");
+      is($dependant->providerCount(), 1, "1 dependency added");
       
       $oven->cookBatches();
       

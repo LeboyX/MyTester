@@ -245,10 +245,11 @@ L</testsToRunAtOnce>.
 
 =head3 Decorations
 
-=head4 before
-
 If you haven't yet set L</testsToRunAtOnce> when calling this method, it will
-be set to however many tests are currently in this batch. 
+be set to however many tests are currently in this batch.
+
+Also, before tests in a batch are run, C<evalProviders> is called on each 
+L<MyTester::Roles::Dependant> consumer in this batch. 
 
 =cut
 
@@ -280,6 +281,13 @@ before 'cookBatch' => sub {
    my ($self) = @_;
    if (!$self->_userSetTestsToRunAtOnce()) {
       $self->testsToRunAtOnce($self->numTests());
+   }
+   
+   my @dependants = grep { 
+      $_->meta()->does_role("MyTester::Roles::Dependant")
+   } $self->getTests(); 
+   for my $dep (@dependants) {
+      $dep->evalProviders();
    }
 };
 
