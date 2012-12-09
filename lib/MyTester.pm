@@ -19,8 +19,7 @@ Version 0.0.1
 
 =head1 To Install
 
-perl Build.PL
-
+ perl Build.PL
  ./Build
  ./Build test
  ./Build install
