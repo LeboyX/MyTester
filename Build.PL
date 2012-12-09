@@ -4,9 +4,19 @@ use warnings FATAL => 'all';
 use Module::Build;
 
 my @ts = glob("t/*.t");
-my $numOfTests = scalar @ts;
-say $numOfTests;
-my $builder = Module::Build->new(
+my $class = Module::Build->subclass(
+   class => "MyBuilder",
+   code => << 'SUBCLASS' );
+   
+sub ACTION_readme {
+   my $self = shift;
+   
+   $self->do_system ("podselect lib/MyTester.pm > README.pod");
+}
+
+SUBCLASS
+
+my $builder = $class->new(
     module_name         => 'MyTester',
     dist_abstract => "Personal module for testing code",
     dist_author         => q{Jason Kilroy <leboyX@gmail.com>},
