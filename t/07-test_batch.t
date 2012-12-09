@@ -33,9 +33,9 @@ my %tests = (
       is_deeply($retrievedTests[1], $ts[1], "2nd test at expected index");
       is_deeply($retrievedTests[2], $ts[2], "3rd test at expected index");
       
-      is_deeply($tb->getTestById($ts[0]->id), $ts[0], "Found 1st test by id");
-      is_deeply($tb->getTestById($ts[1]->id), $ts[1], "Found 2nd test by id");
-      is_deeply($tb->getTestById($ts[2]->id), $ts[2], "Found 3rd test by id");
+      is_deeply($tb->getTest($ts[0]->id), $ts[0], "Found 1st test by id");
+      is_deeply($tb->getTest($ts[1]->id), $ts[1], "Found 2nd test by id");
+      is_deeply($tb->getTest($ts[2]->id), $ts[2], "Found 3rd test by id");
    },
    
    pushAndDelTest => sub {
@@ -46,14 +46,14 @@ my %tests = (
       
       $tb->addTest(@ts);
       
-      $tb->delTestById($ts[0]->id());
+      $tb->delTest($ts[0]->id());
       is(scalar $tb->getTests(), 2, "Test list one less");
-      is($tb->getTestById($ts[0]->id()), undef, 
+      is($tb->getTest($ts[0]->id()), undef, 
          "1st test couldn't be found by id");
       
       $tb->delTest($ts[1]);
       is(scalar $tb->getTests(), 1, "Test list two less");
-      is($tb->getTestById($ts[1]->id()), undef, 
+      is($tb->getTest($ts[1]->id()), undef, 
          "2nd test couldn't be found by id");
    },
    

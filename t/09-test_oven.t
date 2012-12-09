@@ -20,7 +20,7 @@ use MyTester::Roles::Mock::EmptyTest;
 use MyTester::Roles::Mock::PuppetProvider;
 use MyTester::Roles::Mock::SimpleDependant;
 use MyTester::Roles::Mock::SleepyTest;
-################################################################################
+
 
 my %tests = (
    constructorTest_test => sub {
@@ -63,13 +63,11 @@ my %tests = (
       is_deeply([$b2->getTests()], [@b2Tests], 
          "Batch 2 tests accessible and existent");
       
-      is_deeply($oven->getTestBatch(id => $b1Tests[0]->id()), $b1, 
-         "Got batch for b1 test");
-      is_deeply($oven->getTestBatch(id => $b2Tests[0]->id()), $b2, 
-         "Got batch for b2 test");
+      is_deeply($oven->getTestBatch($b1Tests[0]), $b1, "Got batch for b1 test");
+      is_deeply($oven->getTestBatch($b2Tests[0]), $b2, "Got batch for b2 test");
          
-      ok($oven->hasTestId($b1Tests[0]->id()), "b1Test1 exists in oven");
-      ok($oven->hasTestId($b2Tests[1]->id()), "b2Test2 exists in oven");
+      ok($oven->hasTest($b1Tests[0]), "b1Test1 exists in oven");
+      ok($oven->hasTest($b2Tests[1]), "b2Test2 exists in oven");
    },
    
    addDupTestsTest_test => sub {
@@ -94,21 +92,21 @@ my %tests = (
          
       $oven->addTestToCurBatch(@b1Tests);
       
-      $oven->delTest(test => $b1Tests[0]);
+      $oven->delTest($b1Tests[0]);
       is($oven->numTestsInCurBatch(), 1, 
          "Test from first batch deleted by obj");
          
-      $oven->delTest(id => $b1Tests[1]->id());
+      $oven->delTest($b1Tests[1]);
       is($oven->numTestsInCurBatch(), 0, 
          "Test from first batch deleted by id");
       
-      dies_ok(sub { $oven->getTestBatch(test => $b1Tests[0]) }, 
+      dies_ok(sub { $oven->getTestBatch($b1Tests[0]) }, 
          "No batch for b1 test 1");
-      dies_ok(sub { $oven->getTestBatch(id => $b1Tests[1]->id()) }, 
+      dies_ok(sub { $oven->getTestBatch($b1Tests[1]) }, 
          "No batch for b1 test 2");
          
-      ok(!$oven->hasTestId($b1Tests[0]->id()), "b1Test1 doesn't exist in oven");
-      ok(!$oven->hasTestId($b1Tests[1]->id()), "b1Test2 doesn't exist in oven");
+      ok(!$oven->hasTest($b1Tests[0]), "b1Test1 doesn't exist in oven");
+      ok(!$oven->hasTest($b1Tests[1]), "b1Test2 doesn't exist in oven");
    },
    
    addTestBeforeTest_test => sub {
@@ -128,15 +126,14 @@ my %tests = (
          ->addTestBefore($middleTest, $firstTest);
       
       for ($firstTest, $middleTest, $extraMiddleTest, $lastTest) {
-         my $id = $_->id();
-         ok($oven->hasTestId($id), "Oven says we have '$id'");
+         ok($oven->hasTest($_), "Oven says we have '".$_->id()."'");
       }
       
       my %batchNums = (
-         'first' => $oven->getTestBatchNum(test => $firstTest),
-         'middle' => $oven->getTestBatchNum(test => $middleTest),
-         'extraMiddle' => $oven->getTestBatchNum(test => $extraMiddleTest),
-         'last' => $oven->getTestBatchNum(test => $lastTest),
+         'first' => $oven->getTestBatchNum($firstTest),
+         'middle' => $oven->getTestBatchNum($middleTest),
+         'extraMiddle' => $oven->getTestBatchNum($extraMiddleTest),
+         'last' => $oven->getTestBatchNum($lastTest),
       );
       
       while (my ($name, $i) = each(%batchNums)) {
@@ -150,7 +147,7 @@ my %tests = (
       cmp_ok($batchNums{first}, '<', $batchNums{middle}, 
          "First test batch < middle");
          
-      is($oven->batchCount, 3, "3 batches for first, middle, and last tests");
+      is($oven->batchCount(), 3, "3 batches for first, middle, and last tests");
    },
    
    addTestAfterTest_test => sub {
@@ -171,15 +168,14 @@ my %tests = (
       $oven->addTestAfter($middleTest, $lastTest);
       
       for ($firstTest, $middleTest, $extraMiddleTest, $lastTest) {
-         my $id = $_->id();
-         ok($oven->hasTestId($id), "Oven says we have '$id'");
+         ok($oven->hasTest($_), "Oven says we have '".$_->id()."'");
       }
       
       my %batchNums = (
-         'first' => $oven->getTestBatchNum(test => $firstTest),
-         'middle' => $oven->getTestBatchNum(test => $middleTest),
-         'extraMiddle' => $oven->getTestBatchNum(test => $extraMiddleTest),
-         'last' => $oven->getTestBatchNum(test => $lastTest),
+         'first' => $oven->getTestBatchNum($firstTest),
+         'middle' => $oven->getTestBatchNum($middleTest),
+         'extraMiddle' => $oven->getTestBatchNum($extraMiddleTest),
+         'last' => $oven->getTestBatchNum($lastTest),
       );
       
       while (my ($name, $i) = each(%batchNums)) {
@@ -193,7 +189,7 @@ my %tests = (
       cmp_ok($batchNums{first}, '<', $batchNums{middle}, 
          "First test batch < middle");
       
-      is($oven->batchCount, 3, "3 batches for first, middle, and last tests");
+      is($oven->batchCount(), 3, "3 batches for first, middle, and last tests");
    },
    
    addTestToTestsBatchTest_test => sub {
@@ -205,11 +201,11 @@ my %tests = (
       $oven->addTestToCurBatch($targetTest);
       $oven->addTestToTestsBatch($targetTest, $testToPush);
       
-      my $targetBatchNum = $oven->getTestBatchNum(test => $targetTest);
-      is($targetBatchNum, $oven->getTestBatchNum(test => $testToPush),
+      my $targetBatchNum = $oven->getTestBatchNum($targetTest);
+      is($targetBatchNum, $oven->getTestBatchNum($testToPush),
          "Added test in batch w/ target test");
       
-      my $batch = $oven->getTestBatch(test => $targetTest);
+      my $batch = $oven->getTestBatch($targetTest);
       is($batch->numTests(), 2, "Batch's test count reflects both tests");
    },
    
@@ -219,12 +215,12 @@ my %tests = (
       my $test = MyTester::Roles::Mock::EmptyTest->new(id => "moveMe");
       $oven->addTestToCurBatch($test);
       $oven->newBatch();
-      $oven->moveTest(test => $test, batchNum => 1);
+      $oven->moveTest($test, 1);
       
       is($oven->numTestsInCurBatch(), 1, 
          "Test moved from prior batch to cur batch");
-      ok($oven->hasTestId($test->id()), "Oven says we have test");
-      is($oven->getTestBatchNum(test => $test), 1, 
+      ok($oven->hasTest($test), "Oven says we have test");
+      is($oven->getTestBatchNum($test), 1, 
          "Test batch num reflects move");
    },
    

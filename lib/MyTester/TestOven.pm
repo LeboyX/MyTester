@@ -43,11 +43,13 @@ use MooseX::StrictConstructor;
 use Carp;
 use TryCatch;
 
+use MyTester::Subtypes;
+use MyTester::TestBatch;
 use MyTester::Roles::Dependant;
 use MyTester::Roles::Identifiable;
 use MyTester::Roles::Provider;
 use MyTester::Roles::Testable;
-use MyTester::TestBatch;
+
 ################################################################################
 # Constants
 ################################################################################
@@ -93,7 +95,7 @@ before 'addTestToCurBatch' => sub {
    my ($self, @ts) = @_;
    
    for my $id (map { $_->id() } @ts) {
-      if ($self->hasTestId($id)) {
+      if ($self->hasTest($id)) {
          croak "Cannot add duplicate test w/ id '$id'";
       }
    }
@@ -103,7 +105,7 @@ after 'addTestToCurBatch' => sub {
    my ($self, @ts) = @_;
    
    for my $t (@ts) {
-      $self->_recordTest($t->id(), $self->getTestBatchNum(test => $t));
+      $self->_recordTest($t, $self->getTestBatchNum($t));
    }
 };
 
@@ -155,12 +157,21 @@ has '_testExistsMap' => (
    is => 'ro',
    default => sub { {} },
    handles => {
-      hasTestId => 'exists',
       numTests => 'count',
-      _recordTest => 'set',
-      _unrecordTest => 'delete' 
    }
 );
+
+method hasTest (TestId $id does coerce) {
+   return exists($self->_testExistsMap()->{$id});
+}
+
+method _recordTest (TestId $id does coerce, Num $batchNum) {
+   return $self->_testExistsMap()->{$id} = $batchNum;
+}
+
+method _unrecordTest (TestId $id does coerce) {
+   return delete($self->_testExistsMap()->{$id});
+}
 
 =pod
 
@@ -221,32 +232,21 @@ after 'newBatch' => sub {
    $self->_updateCurBatch();
 };
 
-method delTest (MyTester::Roles::Testable :$test?, Str :$id?) {
-   my $testId = $self->_extractId($test, $id);
-   $self->getTestBatch(id => $testId)->delTestById($testId);
+method delTest (TestId $id does coerce) {
+   $self->getTestBatch($id)->delTest($id);
 }
 
 after 'delTest' => sub {
-   my ($self, %args) = @_;
-   
-   my $id;
-   if ($args{test}) {
-      $id = $args{test}->id();
-   }
-   else {
-      $id = $args{id};
-   }
+   my ($self, $id) = @_;
    $self->_unrecordTest($id);
 };
 
-method getTest (Str :$id!) {
-   return $self->getTestBatch(id => $id)->getTestById($id);
+method getTest (TestId $id! does coerce) {
+   return $self->getTestBatch($id)->getTest($id);
 }
 
-method getTestBatch (MyTester::Roles::Testable :$test?, Str :$id?) {
-   my $idToLookup = $self->_extractId($test, $id);
-   
-   my $index = $self->getTestBatchNum(id => $idToLookup);
+method getTestBatch (TestId $id! does coerce) {
+   my $index = $self->getTestBatchNum($id);
    if (defined $index && $index > -1) {
       return $self->getBatch($index);
    }
@@ -255,34 +255,16 @@ method getTestBatch (MyTester::Roles::Testable :$test?, Str :$id?) {
    }
 }
 
-method getTestBatchNum (MyTester::Roles::Testable :$test?, Str :$id?) {
-   my $idToLookup = $self->_extractId($test, $id);
-   
+method getTestBatchNum (TestId $id! does coerce) {
    my $index = ($self->searchBatchIndeces(sub {
-      $_->hasTest(id => $idToLookup);
+      $_->hasTest($id);
    }))[0];
 
    if ($index == -1) {
-      croak "Oven does not currently have test w/ id '$idToLookup'";
+      croak "Oven does not currently have test w/ id '$id'";
    }
    
    return $index;
-}
-
-method _extractId {
-   shift;
-   my ($idObj, $id) = @_;
-   if ($idObj) {
-      return $idObj->id();
-   }
-   else {
-      if (defined $id) {
-         return $id;
-      }
-      else {
-         croak "Must provide an Identifiable object or an id";
-      }
-   }
 }
 
 method addTestsToBatch (Int $batchNum!, MyTester::Roles::Testable @tests) {
@@ -294,7 +276,7 @@ method addTestsToBatch (Int $batchNum!, MyTester::Roles::Testable @tests) {
    $batch->addTest(@tests);
    
    for my $test (@tests) {
-      $self->_recordTest($test->id(), $self->getTestBatchNum(test => $test));
+      $self->_recordTest($test, $self->getTestBatchNum($test));
    }
    
    return $self;
@@ -303,7 +285,7 @@ method addTestsToBatch (Int $batchNum!, MyTester::Roles::Testable @tests) {
 method addTestToTestsBatch (
       MyTester::Roles::Testable $target!, 
       MyTester::Roles::Testable @tests!) {
-   $self->addTestsToBatch($self->getTestBatchNum(test => $target), @tests);
+   $self->addTestsToBatch($self->getTestBatchNum($target), @tests);
    
    return $self;
 }
@@ -311,7 +293,7 @@ method addTestToTestsBatch (
 method addTestBefore (
       MyTester::Roles::Testable $anchor!, 
       MyTester::Roles::Testable @tests) {
-   my $anchorBatchNum = $self->getTestBatchNum(test => $anchor);
+   my $anchorBatchNum = $self->getTestBatchNum($anchor);
    my $insertIndex = $anchorBatchNum - 1;
    
    if ($anchorBatchNum == 0) {
@@ -339,7 +321,7 @@ after 'addTestBefore' => sub {
 method addTestAfter (
       MyTester::Roles::Testable $anchor!, 
       MyTester::Roles::Testable @tests!) {
-   my $anchorBatchNum = $self->getTestBatchNum(test => $anchor);
+   my $anchorBatchNum = $self->getTestBatchNum($anchor);
    my $insertIndex = $anchorBatchNum + 1;
    
    if ($insertIndex == $self->batchCount()) {
@@ -370,22 +352,14 @@ method getTestDepCount (MyTester::Roles::Dependant $dep) {
    return $dep->providerCount();
 }
 
-method moveTest (
-      MyTester::Roles::Testable :$test?, 
-      Str :$id?, 
-      Int :$batchNum!) {
-   my $idToLookup = $self->_extractId($test, $id);
-   
+method moveTest (TestId $id! does coerce, Int $batchNum!) {
    my $batchCount = $self->batchCount();
    if ($batchNum > $batchCount) {
       croak "Batch num '$batchNum' > number of batches '$batchCount'"; 
    }
    
-   my $testToMove = $test;
-   if (!$testToMove) {
-      $testToMove = $self->getTest(id => $idToLookup);
-   }
-   $self->delTest(test => $testToMove);
+   my $test = $self->getTest($id);
+   $self->delTest($test);
    $self->addTestsToBatch($batchNum, $test);
    
    return $self;

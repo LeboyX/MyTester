@@ -53,6 +53,7 @@ use TryCatch;
 use Data::Dumper;
 
 use MyTester::Roles::Testable;
+use MyTester::Subtypes;
 
 use Parallel::ForkManager;
 ################################################################################
@@ -161,7 +162,7 @@ has 'cooked' => (
 
 =head1 Public Methods
 
-=head2 getTestById
+=head2 getTest
 
 Returns the L<MyTester::Roles::Testable> object w/ the given id. Can be undef
 if the test doesn't exist in this batch.
@@ -170,7 +171,7 @@ B<Parameters>
 
 =over
 
-=item * [0]: Id of the test to look for
+=item * [0]: L<MyTester::Subtypes/TestId> to lookup test with. 
 
 =back
 
@@ -179,39 +180,11 @@ undef if the test doesn't exist in this batch.
 
 =cut
 
-method getTestById (Str $id!) {
+method getTest (TestId $id! does coerce) {
    return $self->_findTestBy(sub { 
       $_->id() eq $id;
    });
 };
-
-=pod
-
-=head2 delTestById
-
-Deletes the test associated w/ the given id. If the test doesn't exist in this
-batch, this is a no-op. 
-
-B<Parameters>
-
-=over
-
-=item [0]: The id of the test to delete. 
-
-=back
-
-B<Returns:> C<$self>
-
-=cut
-
-method delTestById (Str $id!) {
-   my $index = $self->_findTestIndexBy(sub {
-      $_->id() eq $id;
-   });
-   $self->_delTestByIndex($index);
-   
-   return $self;
-}
 
 =pod
 
@@ -223,7 +196,7 @@ B<Parameters>
 
 =over
 
-=item [0]: The L<MyTester::Roles::Testable> test to delete. 
+=item [0]: L<MyTester::Subtypes/TestId> to delete test by.
 
 =back
 
@@ -231,9 +204,13 @@ B<Returns:> C<$self>
 
 =cut
 
-method delTest (MyTester::Roles::Testable $t!) {
-   return $self->delTestById($t->id());
-}
+method delTest (TestId $id! does coerce) {
+   my $index = $self->_findTestIndexBy(sub {
+      $_->id() eq $id;
+   });
+   $self->_delTestByIndex($index);
+   
+   return $self;}
 
 =pod
 
@@ -251,25 +228,12 @@ B<Parameters>
 
 One of the above parameters must be provided or this will croak. 
 
-B<Returns:> True if test exists. False otherwise. 
+B<Returns:> The test itself if it exists. Undefined otherwise 
 
 =cut
 
-method hasTest (MyTester::Roles::Testable :$test?, Str :$id?) {
-   my $has;
-   if (!$test) {
-      if (!defined $id) {
-         croak "Must provide a testable object OR an id";
-      }
-      else {
-         $has = $self->getTestById($id);
-      }
-   }
-   else {
-      $has = $self->getTestById($test->id());
-   }
-   
-   return $has;
+method hasTest (TestId $id does coerce) {
+   return $self->getTest($id);
 }
 
 =pod
@@ -298,7 +262,7 @@ method cookBatch () {
           $exit_signal, 
           $core_dump, 
           $test) = @_;
-       %{$self->getTestById($id)} = %{$test}; #TODO: Fix this!
+       %{$self->getTest($id)} = %{$test}; #TODO: Fix this!
    });
    
    for my $test ($self->getTests()) {
