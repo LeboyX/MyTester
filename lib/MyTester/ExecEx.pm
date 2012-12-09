@@ -79,25 +79,15 @@ use TryCatch;
       isa => 'Str',
       is => 'rw',
       required => 1,
-      trigger => sub {
-         my ($self, $val) = @_;
-         croak "'$val' cannot be found in filesystem" if !which($val);
-      }
    );
-
-The command to run on the command line. Must be found somewhere on your system's
-PATH. 
-
+   
+The command to run on the command line. 
 =cut
 
 has 'cmd' => (
    isa => 'Str',
    is => 'rw',
    required => 1,
-   trigger => sub {
-      my ($self, $val) = @_;
-      croak "'$val' cannot be found in filesystem" if !which($val);
-   }
 );
 
 =head2 flags
@@ -315,6 +305,12 @@ and STDERR hooked up to this object's IO references. You can start the command
 by calling C<start()>, C<pump()>, C<finish()>, etc. on the object returned as
 appropriate for your needs.  
 
+=head3 Decorations
+
+Before building the harness, validation is done on L</cmd>. If it cannot be 
+found on the system path (via L<File::Which>) or is not executable, 
+L</buildHarness> will croak.
+
 =cut
 
 method buildHarness (Int :$t? = 0) {
@@ -339,6 +335,15 @@ method buildHarness (Int :$t? = 0) {
    
    return harness(@harnessArgs);
 }
+
+before 'buildHarness' => sub {
+   my ($self) = @_;
+   
+   my $cmd = $self->cmd();
+   if (!which($cmd) && !-x $cmd) {
+      croak "'cmd' cannot be found in filesystem and/or is not executable";
+   }
+};
 
 ################################################################################
 # Roles (put here to compile properly w/ Moose)

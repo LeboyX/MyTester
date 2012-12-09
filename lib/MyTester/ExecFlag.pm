@@ -75,6 +75,7 @@ has 'name' => (
       handles => {
          addArg => 'push',
          getArgs => 'elements',
+         hasArgs => 'count',
       }
    );
 
@@ -90,6 +91,7 @@ has 'args' => (
    handles => {
       addArg => 'push',
       getArgs => 'elements',
+      hasArgs => 'count',
    }
 );
 
@@ -136,7 +138,12 @@ method build () {
    }
    $flag .= $self->name();
    
-   return ($flag, join(" ", $self->getArgs()));;
+   if ($self->hasArgs()) {   
+      return ($flag, join(" ", $self->getArgs()));;
+   }
+   else {
+      return $flag;
+   }
 }
 
 ################################################################################

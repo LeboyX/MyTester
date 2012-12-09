@@ -19,7 +19,8 @@ use MyTester::Dir;
 my %tests = (
    testBadCompiler => sub {
       try {
-         MyTester::CompilerForC->new()->compiler("");
+         my $c = MyTester::CompilerForC->new()->compiler("");
+         $c->test();
       }
       catch ($e) {
          chomp $e;
