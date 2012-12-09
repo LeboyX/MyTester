@@ -21,11 +21,9 @@ Version 0.0.1
 
 perl Build.PL
 
-./Build
-
-./Build test
-
-./Build install
+ ./Build
+ ./Build test
+ ./Build install
 
 =head1 Description
 
