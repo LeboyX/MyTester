@@ -19,14 +19,14 @@ TODO
 =head1 Description
 
 A TestOven is basically a wrapper to store a list of L<MyTester::TestBatch> 
-objects. It  provided methods to managed where tests are and to add tests 
+objects. It provides methods to managed where tests are and to add tests 
 before/with/after the batches which contain other tests. 
 
 Unlike a L<MyTester::TestBatch>, a TestOven will run its batches one at a time.
 Otherwise, it'd be impossible (or much harder) to maintain dependencies between
 tests.
 
-A TestOven cannot contain two identical tests (there id's are the same).
+A TestOven cannot contain two identical tests (where their id's are the same).
 
 =cut
 
@@ -130,7 +130,7 @@ after 'addTestToCurBatch' => sub {
 
 Where we store all our L<MyTester::TestBatch> objects for cooking later. 
 
-Note that you can't create add batches on your own. Instead, that is done in 
+Note that you can't create/add batches on your own. Instead, that is done in 
 methods like L</newBatch>.
 
 =cut
@@ -182,7 +182,7 @@ method _unrecordTest (TestId $id does coerce) {
 
 If set to true, L</addTestBeforeTest> and L</addTestAfterTest> will make the
 test(s) you add be providers for or dependants on (respectively) the test you 
-inserted them relative to
+inserted them relative to.
 
 =cut
 
