@@ -398,6 +398,10 @@ method afterTest () {
    return $self;
 }
 
+method provides () {
+   return $self->testStatus()->key() ne $MyTester::TestStatus::FAILED->key();
+}
+
 ################################################################################
 # Roles (included at end to compile properly)
 ################################################################################
@@ -410,10 +414,12 @@ method afterTest () {
 
 =item * L<MyTester::Roles::Testable>
 
+=item * L<MyTester::Roels::Provider>
+
 =back
 
 =cut
 
-with qw(MyTester::Roles::Testable);
+with qw(MyTester::Roles::Testable MyTester::Roles::Provider);
 
 1;

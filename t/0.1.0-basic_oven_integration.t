@@ -45,49 +45,121 @@ package ExecAndGrepTest {
    );
    
    method test () {
-      $self->exec(MyTester::ExecEx->new(cmd => $self->cmd()));
-      
-      my $h = $self->exec()->buildHarness(t => 5);
-      $h->pump();
-      $h->finish();
+      if (!$self->failed()) {
+         $self->exec(MyTester::ExecEx->new(cmd => $self->cmd()));
+         
+         my $h = $self->exec()->buildHarness(t => 5);
+         $h->pump();
+         $h->finish();
+      }
    }
    
    method afterTest () {
-      if ($self->exec()->derefOut() =~ /hello/i) {
-         $self->testStatus($MyTester::TestStatus::PASSED);
-      }
-      else {
-         $self->testStatus($MyTester::TestStatus::FAILED);
+      if (!$self->failed()) {
+         if ($self->exec()->derefOut() =~ /hello/i) {
+            $self->testStatus($MyTester::TestStatus::PASSED);
+         }
+         else {
+            $self->testStatus($MyTester::TestStatus::FAILED);
+         }
       }
    }
    
-   with qw(MyTester::Roles::Testable);
+   method handleFailedProviders {
+      $self->fail($MyTester::TestStatus::DEPENDENCY_UNSATISFIED);
+   }
+   
+   with qw(MyTester::Roles::Testable MyTester::Roles::Dependant);
 }
 
-my %tests = (
-   integrateOvenTest => sub {
-      my $workingDir = File::Temp->newdir();
+my $workingDir = File::Temp->newdir(); # Never unlinks until all testing is done
+my $goodFile = qq|
+   #include <stdio.h>
+   int main (void) {
+      printf ("Hello World\\n");
       
+      return 0;
+   }
+|;
+my $badFile = qq|
+   #include <stdio.h>
+   int main (void) {
+      a;
+      printf ("Hello World\\n");
+      return 0;
+   }
+|;
+my %tests = (
+   compileAndRunWithSuccess_test => sub {
       my $oven = MyTester::TestOven->new(
          id => "student", assumeDependencies => 1);
          
-      my $c = makeCompiler($workingDir->dirname());
+      my $c = makeCompiler($workingDir->dirname(), $goodFile);
       $oven->addTest($c);
       
-      my $t = ExecAndGrepTest->new(
-         cmd => $c->getPathToExecutable(),
-         word => "Hello");
+      my @ts = (
+         ExecAndGrepTest->new(
+            id => "t1",
+            cmd => $c->getPathToExecutable(),
+            word => "Hello"),
+         ExecAndGrepTest->new(
+            id => "t2",
+            cmd => $c->getPathToExecutable(),
+            word => "world"));
          
-      $oven->addTestAfter($c, $t);
+      $oven->addTestAfter($c, @ts);
+      is($ts[0]->providerCount(), 1, "Test has new provider");
+      
       $oven->cookBatches();
       
-      is_deeply($t->testStatus(), $MyTester::TestStatus::PASSED,
-         "ExecAndGrepTest passed");
+      is_deeply($c->testStatus(), $MyTester::TestStatus::PASSED, 
+         "Compiler passed");
+      ok($c->wasRun(), "Compiler was run");
+      
+      for my $t (@ts) {
+         my $id = $t->id();
+         ok($t->wasRun(), "'$id' was run");
+         is_deeply($t->testStatus(), $MyTester::TestStatus::PASSED,
+            "'$id' passed");
+      }
+   },
+   
+   compileAndRunWithFailure_test => sub {
+      my $oven = MyTester::TestOven->new(
+         id => "student", assumeDependencies => 1);
+         
+      my $c = makeCompiler($workingDir->dirname(), $badFile);
+      $oven->addTest($c);
+
+      my @ts = (
+         ExecAndGrepTest->new(
+            id => "t1",
+            cmd => $c->getPathToExecutable(),
+            word => "Hello"),
+         ExecAndGrepTest->new(
+            id => "t2",
+            cmd => $c->getPathToExecutable(),
+            word => "world"));
+         
+      $oven->addTestAfter($c, @ts);
+      $oven->cookBatches();
+      
+      ok($c->wasRun(), "Compiler was run");
+      is_deeply($c->testStatus, $MyTester::TestStatus::FAILED,
+         "Compiler failed");
+         
+      for my $t (@ts) {
+         my $id = $t->id();
+         ok(!$t->wasRun(), "'$id' wasn't run");
+         is_deeply($t->testStatus(), $MyTester::TestStatus::DEPENDENCY_UNSATISFIED,
+            "'$id' had unsatisfied dependency");
+      }
    }
 );
 
 sub makeCompiler {
    my $workingDir = shift;
+   my $fileInput = shift;
    
    my $compiler = MyTester::CompilerForC->new(
       workingDir => MyTester::Dir->new(name => $workingDir));
@@ -96,15 +168,7 @@ sub makeCompiler {
       ->addFlag(MyTester::ExecFlag->new(name => "Wall"));
    
    my $file = File::Temp->new(dir => $workingDir, UNLINK => 0, SUFFIX => ".c");
-   my $fileContents = qq|
-      #include <stdio.h>
-      int main (void) {
-         printf ("Hello World\\n");
-         
-         return 0;
-      }
-   |;
-   print $file $fileContents;
+   print $file $fileInput;
    $file->flush();
    
    $compiler->addFile(MyTester::File->new(name => $file->filename()));
@@ -113,7 +177,6 @@ sub makeCompiler {
 }
 
 while (my ($testName, $testCode) = each(%tests)) {
-   note($testName);
    subtest $testName => $testCode;
 }
 
