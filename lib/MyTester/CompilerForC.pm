@@ -398,6 +398,15 @@ method afterTest () {
    return $self;
 }
 
+=pod
+
+=head2 provides 
+
+B<Returns:> True if our C<testStatus> isn't $MyTester::TestStatus::FAILED.
+False if it is.
+
+=cut
+
 method provides () {
    return $self->testStatus()->key() ne $MyTester::TestStatus::FAILED->key();
 }

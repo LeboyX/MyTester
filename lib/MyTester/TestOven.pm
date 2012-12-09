@@ -180,7 +180,7 @@ method _unrecordTest (TestId $id does coerce) {
       default => 0
    );
 
-If set to true, L</addTestBeforeTest> and L</addTestAfterTest> will make the
+If set to true, L</addTestBeforeTest> and L</addTestAfter> will make the
 test(s) you add be providers for or dependants on (respectively) the test you 
 inserted them relative to.
 

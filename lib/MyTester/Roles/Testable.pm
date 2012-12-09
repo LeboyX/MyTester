@@ -102,14 +102,6 @@ account for this setting.
 
 Calling C<fail> will set C<testStatus> to whatever you set passed to C<fail>.
 
-=head3 Public Delegations
-
-=over
-
-=item failed: Determines whether this test has failed or not
-
-=back
-
 =cut
 
 has 'fail' => (
@@ -166,28 +158,34 @@ Consumers must implement the following methods:
 Called before L</test> using Moose's C<before> modifier 
 (see L<Moose::Manual::MethodModifiers>). 
 
-=head3 Returns
+If this test was already failed w/ L</fail>, this method will not be run.
 
-Whatever you want. The return is ignored here, but you can use this method
-elsewhere if you really want to.
+B<Returns:> Whatever you want. The return is ignored here, but you can use this 
+method elsewhere if you really want to.
 
 =head2 canPerformTest
 
 Called before L</test> to determine whether we can proceed w/ testing.
 
-=head3 Returns
-
-Whether we can proceed w/ testing. If you set L</fail>, this method will always
-return false.
+B<Returns:> Whether we can proceed w/ testing. If you set L</fail>, this method 
+will always return false.
 
 =head2 test
 
 The actual guts of your tests. Do whatever you need to do to run your test 
 within this method.
 
-=head3 Returns
+If this test was already failed w/ L</fail>, this method will not be run.
 
-Whatever you want. 
+B<Returns:> Whatever you want. 
+
+=head2 afterTest
+
+Performs anything you wish after the test has run.
+
+If this test was already failed w/ L</fail>, this method will not be run.
+
+B<Returns:> Whatever you want, though the return val is ignore here. 
 
 =cut
 
@@ -201,7 +199,10 @@ around 'canPerformTest' => sub {
 
 before 'test' => sub { 
    my $self = shift;
-   $self->beforeTest();
+   
+   if (!$self->failed()) {
+      $self->beforeTest();
+   }
 };
 
 around 'test' => sub {
@@ -218,7 +219,10 @@ around 'test' => sub {
 
 after 'test' => sub {
    my $self = shift;
-   $self->afterTest();
+   
+   if (!$self->failed()) {
+      $self->afterTest();
+   }
 };
 
 =pod
