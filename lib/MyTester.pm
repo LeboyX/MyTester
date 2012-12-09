@@ -11,14 +11,21 @@ our $TEST_POD_COVERAGE = 1;
 
 =head1 Name
 
-MyTester - 
+MyTester - Blah blah blah
 
 =head1 Version
 
-No set version right now
+Version 0.0.1
 
-=head1 Synopsis
+=head1 To Install
+
+perl Build.PL
+./Build
+./Build test
+./Build install
 
 =head1 Description
+
+Blah blah blah
 
 =cut
