@@ -24,7 +24,7 @@ This is a re-write of my original module, using L<Moose> to make OO perl5
 cleaner to use.
 
 This module (and all others contained w/in it) aims to make that proces easier
-providing generic, easily extended and re-used tests, wrappers, and methods
+by providing generic, easily extended and re-used tests, wrappers, and methods
 of parallelisation to make grading code submissions easier/faster/cleaner. This
 module does not leverage the TAP interface of any of the Test::* modules. It's
 all written from scratch. 
