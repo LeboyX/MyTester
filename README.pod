@@ -1,8 +1,7 @@
-=pod
-
 =head1 Name
 
-MyTester - Blah blah blah
+MyTester - A module to make make the testing/scoring/grade-file-generating
+of code submissions easier.
 
 =head1 Version
 
@@ -17,5 +16,20 @@ Version 0.0.1
 
 =head1 Description
 
-Blah blah blah
+Originally, I graded student code submissions used an often last-minute-patched
+version of this module that, while very useful, sometimes proved too laborious
+due to its inflexibility and lack of foresight during the initial design. 
 
+This module (and all others contained w/in it) aims to make that proces easier
+providing generic, easily extended and re-used tests, wrappers, and methods
+of parallelisation to make grading code submissions easier/faster/cleaner. This
+module does not leverage the TAP interface of any of the Test::* modules. It's
+all written from scratch. 
+
+While this module is I<intended> for testing/grading code submissions, there
+is no restriction on what you can do. If written properly, it should be 
+applicable to most testing circumstances in one form or another. 
+
+=head1
+
+TODO: More to follow
