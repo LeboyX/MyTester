@@ -59,7 +59,7 @@ can depend on it.
 package MyTester::CompilerForC;
 use 5.010;
 use Moose;
-extends 'MyTester::SimpleTest';
+extends 'MyTester::Tests::BaseTest';
 
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

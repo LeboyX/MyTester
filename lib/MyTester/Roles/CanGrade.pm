@@ -129,7 +129,7 @@ B<Parameters>
 
 =over
 
-=item [0](<MyTester::SimpleTest/TestStatusKey>): key for status to check 
+=item [0](<MyTester::Tests::BaseTest/TestStatusKey>): key for status to check 
 
 =back
 
@@ -149,7 +149,7 @@ B<Parameters>
 
 =over
 
-=item [0](<MyTester::SimpleTest/TestStatusKey>): key for status to get
+=item [0](<MyTester::Tests::BaseTest/TestStatusKey>): key for status to get
 
 =back
 

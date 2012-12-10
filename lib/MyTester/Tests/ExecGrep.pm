@@ -34,7 +34,7 @@ use 5.010;
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;
-extends qw(MyTester::SimpleTest);
+extends qw(MyTester::Tests::BaseTest);
 
 ################################################################################
 # Imports

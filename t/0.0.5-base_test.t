@@ -10,7 +10,7 @@ use TryCatch;
 
 use MyTester::ExecEx;
 use MyTester::Grade;
-use MyTester::SimpleTest;
+use MyTester::Tests::BaseTest;
 use MyTester::TestStatus;
 
 ################################################################################
@@ -18,13 +18,13 @@ use MyTester::TestStatus;
 my %tests = (
    testDefaultStatus => sub {
       is_deeply(
-         MyTester::SimpleTest->new()->testStatus(),
+         MyTester::Tests::BaseTest->new()->testStatus(),
          $MyTester::TestStatus::UNSTARTED,
          "Had 'unstarted' status");
    },
 
    testTest => sub {
-      my $t = MyTester::SimpleTest->new()->test(); 
+      my $t = MyTester::Tests::BaseTest->new()->test(); 
       is_deeply(
          $t->testStatus(),
          $MyTester::TestStatus::PASSED,
@@ -32,7 +32,7 @@ my %tests = (
    },
    
    testAfterTest => sub {
-      my $t = MyTester::SimpleTest->new()->test()->afterTest();
+      my $t = MyTester::Tests::BaseTest->new()->test()->afterTest();
       is_deeply(
          $t->testStatus(),
          $MyTester::TestStatus::PASSED,
@@ -40,7 +40,7 @@ my %tests = (
    },
    
    testGrade => sub {
-      my $t = MyTester::SimpleTest->new();
+      my $t = MyTester::Tests::BaseTest->new();
       
       my $grade = MyTester::Grade->new(
          val => 100,
@@ -55,7 +55,7 @@ my %tests = (
    },
    
    testGradeResolution => sub {
-      my $t = MyTester::SimpleTest->new();
+      my $t = MyTester::Tests::BaseTest->new();
       my $g = MyTester::Grade->new(val => 100, msg => "Passed");
       
       $t->setGrade($MyTester::TestStatus::PASSED, $g);
@@ -73,7 +73,7 @@ my %tests = (
          use 5.010;
          use Moose;
       
-         extends 'MyTester::SimpleTest';
+         extends 'MyTester::Tests::BaseTest';
          
          has 'exec' => (
             isa => 'MyTester::ExecEx',
