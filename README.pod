@@ -16,9 +16,12 @@ Version 0.0.1
 
 =head1 Description
 
-Originally, I graded student code submissions used an often last-minute-patched
+Originally, I graded student code submissions using an often last-minute-patched
 version of this module that, while very useful, sometimes proved too laborious
 due to its inflexibility and lack of foresight during the initial design. 
+
+This is a re-write of my original module, using L<Moose> to make OO perl5 
+cleaner to use.
 
 This module (and all others contained w/in it) aims to make that proces easier
 providing generic, easily extended and re-used tests, wrappers, and methods
