@@ -4,7 +4,7 @@
 
 =head1 Name
 
-MyTester::Tests::BaseTest - A simple consumer of L<MyTester::Roles::Testable> and
+MyTester::Tests::Base - A simple consumer of L<MyTester::Roles::Testable> and
 L<MyTester::Roles::CanGrade>. 
 
 =head1 Version
@@ -18,7 +18,7 @@ your own tests.
 
 =cut
 
-package MyTester::Tests::BaseTest;
+package MyTester::Tests::Base;
 use 5.010;
 use Moose;
 use MooseX::Method::Signatures;
