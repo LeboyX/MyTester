@@ -46,12 +46,25 @@ my %tests = (
          val => 100,
          msg => "Passed test");
 
-      $t->setGrade($MyTester::TestStatus::PASSED->key() => $grade);
+      $t->setGrade($MyTester::TestStatus::PASSED => $grade);
       
       my $actualGrade = $t->getGrade($MyTester::TestStatus::PASSED);
       is_deeply($actualGrade, $grade, "Grade successfully set");
       is_deeply($actualGrade->msg(), $grade->msg(), "Msg's are right");
       is_deeply($actualGrade->val(), $grade->val(), "Val's are right");
+   },
+   
+   testGradeResolution => sub {
+      my $t = MyTester::SimpleTest->new();
+      my $g = MyTester::Grade->new(val => 100, msg => "Passed");
+      
+      $t->setGrade($MyTester::TestStatus::PASSED, $g);
+      
+      is($t->getResolvedGrade(), undef, "No grade for unmapped status");
+      $t->test();
+      
+      is_deeply($t->getResolvedGrade(), $g, 
+         "Got correctly resolved grade after running test");
       
    },
    

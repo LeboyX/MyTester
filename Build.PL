@@ -12,6 +12,7 @@ sub ACTION_readme {
    my $self = shift;
    
    $self->do_system ("podselect lib/MyTester.pm > README.pod");
+   $self->do_system ("git add README.pod");
 }
 
 SUBCLASS

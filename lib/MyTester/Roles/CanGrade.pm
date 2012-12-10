@@ -68,6 +68,7 @@ use Carp;
 use TryCatch;
 
 use MyTester::Grade;
+use MyTester::Subtypes;
 ################################################################################
 # Attributes
 ################################################################################
@@ -108,26 +109,11 @@ has 'rubric' => (
    is => 'rw',
    default => sub { {} },
    handles => {
-      setGrade => 'set',
-      getGrade => 'get'
+      _setGrade => 'set',
+      _getGrade => 'get',
+      _hasGrade => 'exists'
    }
 );
-
-around 'getGrade' => sub {
-   my ($orig, $self, @args) = @_;
-   
-   my @newArgs = ();
-   for (@args) {
-      if (ref eq "MyTester::TestStatus") {
-         push(@newArgs, $_->key());
-      }
-      else {
-         push(@newArgs, $_);
-      }
-   }
-   
-   return $self->$orig(@newArgs);
-};
 
 ################################################################################
 # Methods
@@ -135,7 +121,74 @@ around 'getGrade' => sub {
 
 =pod
 
-=head1 Provided Methods
+=head1 Public Methods
+
+=head2 hasGrade
+
+B<Parameters>
+
+=over
+
+=item [0](<MyTester::SimpleTest/TestStatusKey>): key for status to check 
+
+=back
+
+B<Returns:> whether we have a grade for the specified test status or not.
+
+=cut
+
+method hasGrade (TestStatusKey $id! does doerce) {
+   return $self->_hadGrade($id);
+}
+
+=pod
+
+=head2 getGrade
+
+B<Parameters>
+
+=over
+
+=item [0](<MyTester::SimpleTest/TestStatusKey>): key for status to get
+
+=back
+
+B<Returns:> the L<MyTester::Grade> object associated w/ the test status key you
+passed in. Can be undef if we don't have it in the rubric.
+
+=cut
+
+method getGrade (TestStatusKey $id! does coerce) {
+   return $self->_getGrade($id);
+}
+
+=pod
+
+=head2 setGrade
+
+Sets a test status to map to a given grade. 
+
+B<Parameters>
+
+=over
+
+=item [0](L<MyTester::Subtypes/TestStatusKey>): Key of test status to make grade
+mapping for
+
+=item [1](L<MyTester::Grade>): grade to map the status to
+
+=back
+
+B<Returns:> C<$self>
+
+=cut
+
+method setGrade (TestStatusKey $id! does coerce, MyTester::Grade $grade!) {
+   $self->_setGrade($id => $grade);
+   return $self;
+}
+
+=pod
 
 =head2 getGradeMsg
 

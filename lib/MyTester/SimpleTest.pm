@@ -109,6 +109,21 @@ method afterTest () {
    return $self;
 }
 
+=pod
+
+=head2 getResolvedGrade
+
+Gets the grade associated w/ the current value of C<testStatus>. 
+
+B<Returns:> the grade associated w/ the current value of C<testStatus>. Can be
+undef if no mapping was defined for the current status.
+
+=cut
+
+method getResolvedGrade () {
+   return $self->getGrade($self->testStatus());
+}
+
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################

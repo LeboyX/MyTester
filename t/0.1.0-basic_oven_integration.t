@@ -16,61 +16,13 @@ use MyTester::ExecEx;
 use MyTester::ExecFlag;
 use MyTester::TestOven;
 use MyTester::TestStatus;
+use MyTester::Tests::ExecGrep;
 
 use Time::HiRes qw(time);
 
 use TryCatch;
 
 ################################################################################
-
-package ExecAndGrepTest {
-   use 5.010;
-   use Moose;
-   use MooseX::Method::Signatures;
-   use Data::Dumper;
-   extends qw(MyTester::SimpleTest);
-   
-   has 'cmd' => (
-      isa => 'Str',
-      is => 'rw',
-      required => 1,
-   );
-   
-   has 'word' => (
-      isa => 'Str',
-      is => 'rw',
-      required => 1,
-   );
-   
-   has 'exec' => (
-      isa => 'MyTester::ExecEx',
-      is => 'rw',
-   );
-   
-   method test () {
-      $self->exec(MyTester::ExecEx->new(cmd => $self->cmd()));
-      
-      my $h = $self->exec()->buildHarness(t => 5);
-      $h->pump();
-      $h->finish();
-   }
-   
-   method afterTest () {
-      my $word = $self->word();
-      if ($self->exec()->derefOut() =~ /$word/i) {
-         $self->testStatus($MyTester::TestStatus::PASSED);
-      }
-      else {
-         $self->testStatus($MyTester::TestStatus::FAILED);
-      }
-   }
-   
-   method handleFailedProviders {
-      $self->fail($MyTester::TestStatus::DEPENDENCY_UNSATISFIED);
-   }
-   
-   with qw(MyTester::Roles::Testable MyTester::Roles::Dependant);
-}
 
 my $workingDir = File::Temp->newdir(); # Never unlinks until all testing is done
 my $goodFile = qq|
@@ -122,14 +74,14 @@ sub makeTests {
    my ($c, $dependOnC) = @_;
    
    my @ts = (
-      ExecAndGrepTest->new(
+      MyTester::Tests::ExecGrep->new(
          id => "t1",
-         cmd => $c->getPathToExecutable(),
-         word => "Hello"),
-      ExecAndGrepTest->new(
+         exec => MyTester::ExecEx->new(cmd => $c->getPathToExecutable()),
+         regex => "qr/Hello/i"),
+      MyTester::Tests::ExecGrep->new(
          id => "t2",
-         cmd => $c->getPathToExecutable(),
-         word => "world"));
+         exec => MyTester::ExecEx->new(cmd => $c->getPathToExecutable()),
+         regex => "qr/world/i"));
    if ($dependOnC) {
       for (@ts) {
          $_->addProviders($c);
@@ -170,9 +122,9 @@ my %tests = (
       my $c = makeCompiler($workingDir->dirname(), $goodFile);
       my @ts = makeTests($c);
       
-      push(@ts, ExecAndGrepTest->new(
-         cmd => $c->getPathToExecutable(), 
-         word => "HERE",
+      push(@ts, MyTester::Tests::ExecGrep->new(
+         exec => MyTester::ExecEx->new(cmd => $c->getPathToExecutable()), 
+         regex => "qr/HERE/",
          id => 't3'));
          
       $oven->addTest($c);
