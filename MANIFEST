@@ -16,11 +16,10 @@ lib/MyTester/Roles/Mock/SimpleDependant.pm
 lib/MyTester/Roles/Mock/SleepyTest.pm
 lib/MyTester/Roles/Provider.pm
 lib/MyTester/Roles/Testable.pm
-lib/MyTester/SimpleTest.pm
 lib/MyTester/Subtypes.pm
 lib/MyTester/TestBatch.pm
 lib/MyTester/TestOven.pm
-lib/MyTester/Tests/BaseTest.pm
+lib/MyTester/Tests/Base.pm
 lib/MyTester/Tests/ExecGrep.pm
 lib/MyTester/TestStatus.pm
 MANIFEST			This list of files
@@ -28,11 +27,11 @@ MANIFEST.SKIP
 README.pod
 t/0.0.0-load.t
 t/0.0.1-file.t
+t/0.0.10-can_grade.t
 t/0.0.2-dir.t
 t/0.0.3-exec_ex.t
 t/0.0.4-testable.t
 t/0.0.5-base_test.t
-t/0.0.5-simple_test.t
 t/0.0.6-compiler_for_c.t
 t/0.0.7-test_batch.t
 t/0.0.8-test_oven.t

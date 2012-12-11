@@ -57,6 +57,7 @@ same way that C<getGrade> currently does
 =cut
 
 package MyTester::Roles::CanGrade;
+use 5.010;
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;
@@ -65,6 +66,8 @@ use MooseX::StrictConstructor;
 # Imports
 ################################################################################
 use Carp;
+use Data::Dumper;
+use List::Util qw(max);
 use TryCatch;
 
 use MyTester::Grade;
@@ -111,8 +114,62 @@ has 'rubric' => (
    handles => {
       _setGrade => 'set',
       _getGrade => 'get',
-      _hasGrade => 'exists'
+      getGrades => 'values',
    }
+);
+
+=pod
+
+=head2 maxStatus
+
+   has 'maxStatus' => (
+      isa => 'MyTester::TestStatus',
+      is => 'rw',
+      clearer => 'resetMaxStatus',
+      trigger => sub {
+         my ($self, $val) = @_;
+         my $valId = $val->id();
+         
+         if (!$self->hasStatus($val)) {
+            croak "No grade mapping exists for '$valId'";
+         }
+         
+         my $valMax = $self->getGradeVal($val);
+         my $trueMax = max map { $_->val() } $self->getGrade();
+         
+         if ($trueMax > $valMax) {
+            carp qq|Warning: max status is worth '$valMax', but the rubric has a
+               mapping to a higher value of '$trueMax'|;
+         }
+      },
+   );
+
+Represents the greatest possible grade that can be achieved. While this is not a
+required field for consumers of this role, setting it will make 
+</genReport> able to put a "X out of Y" in the report it prints out.
+
+=cut
+
+has 'maxStatus' => (
+   isa => 'MyTester::TestStatus',
+   is => 'rw',
+   clearer => 'resetMaxStatus',
+   trigger => sub {
+      my ($self, $val) = @_;
+      my $valId = $val->key();
+      
+      if (!$self->hasGrade($val)) {
+         croak "No grade mapping exists for '$valId'";
+      }
+      
+      my $valMax = $self->getGradeVal($val);
+      my $trueMax = max map { $_->val() } $self->getGrades();
+      
+      if ($trueMax > $valMax) {
+         carp qq|Warning: max status is worth '$valMax', but the rubric has a
+            mapping to a higher value of '$trueMax'|;
+      }
+   },
 );
 
 ################################################################################
@@ -122,6 +179,62 @@ has 'rubric' => (
 =pod
 
 =head1 Public Methods
+
+=head2 genReport
+
+Generate a string representing the grade received for a given status. 
+
+B<Parameters>
+
+=over
+
+=item [0]! (L<MyTester::TestStatus>): TestStatus to generate a grade report for.
+If L</rubric> doesn't have a mapping to this status, will warn and return undef.
+
+=item [1]? (L<MyTester::TestStatus>): If provided, represents the status mapping
+to the highest possible grade. This will override L</maxStatus>, if you set it.
+If the rubric contains no mapping to this status, will warn and proceed as if 
+you didn't provide this parameter at all
+
+=back
+
+B<Returns:> the grade report for the status provided in [0]. In [0] didn't map
+to a status, will return C<undef>.  
+
+=cut
+
+method genReport (
+      MyTester::TestStatus $reportStatus!,
+      MyTester::TestStatus|Undef $optionalMaxStatus?) {
+   my $got = $self->getGradeVal($reportStatus);
+   
+   my $maxStatus = $optionalMaxStatus // $self->maxStatus();
+   my $max = undef;
+   if ($maxStatus && $self->hasGrade($maxStatus)) {
+      $max = $self->getGradeVal($maxStatus);
+   }
+   
+   my $msg = $self->getGradeMsg($reportStatus);
+   
+   my $report = 
+      sprintf("(%s%s): %s", $got, (defined $max) ? "/$max" : "", $msg);
+      
+   return $report;
+}
+
+before 'genReport' => sub {
+   my ($self, $reportStatus, $optionalMax) = @_;
+   
+   if (!$self->hasGrade($reportStatus)) {
+      croak "Error: No mapping to status '".$reportStatus->key()."'";
+   }
+   
+   if (defined $optionalMax && !$self->hasGrade($optionalMax)) {
+      carp "Warning: No mapping to max status '".$optionalMax->key()."'";
+   }
+};
+
+=pod
 
 =head2 hasGrade
 
@@ -137,8 +250,8 @@ B<Returns:> whether we have a grade for the specified test status or not.
 
 =cut
 
-method hasGrade (TestStatusKey $id! does doerce) {
-   return $self->_hadGrade($id);
+method hasGrade (TestStatusKey $id! does coerce) {
+   return defined $self->rubric->{$id};
 }
 
 =pod

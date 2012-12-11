@@ -29,6 +29,7 @@ use Data::Dumper;
 use Carp;
 use TryCatch;
 
+use MyTester::Subtypes;
 use MyTester::TestStatus;
 
 ################################################################################
@@ -122,6 +123,33 @@ undef if no mapping was defined for the current status.
 
 method getResolvedGrade () {
    return $self->getGrade($self->testStatus());
+}
+
+=pod
+
+=head2 getResolvedReport
+
+Generated a report representing the L<MyTester::Grade> earned by this tests 
+current C<testStatus>.
+
+B<Parameters>
+
+=over
+
+=item [0]? (MyTester::TestStatus): Status representing the max grade. If not 
+mapped in the rubric, will throw an error.  
+
+=back
+
+B<Returns:> a report representing the L<MyTester::Grade> earned by this tests 
+current C<testStatus>.
+
+B<See:> L<MyTester::CanGrade/genReport>.
+
+=cut
+
+method getResolvedReport (MyTester::TestStatus $max?) {
+   return $self->genReport($self->testStatus(), $max);
 }
 
 ################################################################################

@@ -56,8 +56,13 @@ my %tests = (
    
    testGradeResolution => sub {
       my $t = MyTester::Tests::Base->new();
-      my $g = MyTester::Grade->new(val => 100, msg => "Passed");
       
+      my $maxStatus = MyTester::TestStatus->new(key => "max");
+      my $maxGrade  = MyTester::Grade->new(val => 100, msg => "Better");
+      
+      my $g = MyTester::Grade->new(val => 70, msg => "Passed");
+      
+      $t->setGrade($maxStatus, $maxGrade); 
       $t->setGrade($MyTester::TestStatus::PASSED, $g);
       
       is($t->getResolvedGrade(), undef, "No grade for unmapped status");
@@ -66,6 +71,18 @@ my %tests = (
       is_deeply($t->getResolvedGrade(), $g, 
          "Got correctly resolved grade after running test");
       
+      like($t->getResolvedReport(), qr/70/, "Report has score received");
+      like($t->getResolvedReport(), qr/Passed/, "Report has msg received");
+      
+      like($t->getResolvedReport($maxStatus), qr/70\/100/,
+         "Report has 'X out of Y' w/ max passed in");
+      
+      $t->maxStatus($maxStatus);
+      like($t->getResolvedReport(), qr/70\/100/, 
+         "Report has 'X out of Y' w/ max set in attribute");
+      
+      like($t->getResolvedReport($MyTester::TestStatus::PASSED), qr/70\/70/,
+         "Report has 'X out of Y' w/ max passed in to override attribute");
    },
    
    testOnTheFlyExtension => sub {
