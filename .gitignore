@@ -1,7 +1,8 @@
 Build
-MYMETA*
-_build/*
-blib/*
 .includepath
 .project
+MANIFEST.bak
+MYMETA*
+blib/*
+_build/*
 .settings/*
