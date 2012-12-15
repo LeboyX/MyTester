@@ -2,6 +2,7 @@ Build
 .includepath
 .project
 MANIFEST.bak
+bigRedButton.sh
 MYMETA*
 blib/*
 _build/*
