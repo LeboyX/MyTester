@@ -40,6 +40,23 @@ my %tests = (
       like($render, qr/I am the only line\nI am the only line/, 
          "Cat'd report into report");
    },
+   
+   passColumnsToLines_test => sub {
+      my $r = MyTester::Reports::Report->new(columns => 10);
+      
+      $r->addLines(MyTester::Reports::ReportLine->new(
+         line => "I am the only line in this report"));
+         
+      my $render = $r->render();
+      my $renderRegex = qr/
+         I\ am\ the\n
+         only\ line\n
+         in\ this\n
+         report
+      /x;
+      
+      like($render, $renderRegex, "Report passed columns down to its lines");
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

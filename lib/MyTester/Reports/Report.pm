@@ -94,6 +94,27 @@ has 'lines' => (
    }
 );
 
+=pod
+
+=head2 columns
+
+   has 'columns' => (
+      isa => 'PositiveInt',
+      is => 'rw',
+      default => 80,
+   );
+
+How many columns all L<MyTester::Reports::ReportLine> objects should have when
+this report is rendered 
+
+=cut
+
+has 'columns' => (
+   isa => 'PositiveInt',
+   is => 'rw',
+   default => 80,
+);
+
 ################################################################################
 # Methods
 ################################################################################
@@ -142,7 +163,10 @@ delimited w/ a newline ("\n");
 =cut
 
 method render (PositiveInt $indentSize? = 3) {
-   return join("\n", $self->_mapLines(sub { $_->render($indentSize) }));
+   return join("\n", $self->_mapLines(sub {
+      $_->columns($self->columns()); 
+      $_->render($indentSize) 
+   }));
 }
 
 ################################################################################

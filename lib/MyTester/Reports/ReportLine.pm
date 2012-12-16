@@ -111,7 +111,7 @@ has 'indent' => (
       default => 80,
    );
 
-How many columns a a line from L</render> should have before be wrapped onto a 
+How many columns a line from L</render> should have before be wrapped onto a 
 new line.
 
 =cut
@@ -191,7 +191,7 @@ B<Parameters>
 
 =item [0]!: Regex we'll use to compute how to indent broken lines
 
-=item [1]? (L<MyTester::Subtypes/PositiveInt): The size of an indent. Default is
+=item [1]? (L<MyTester::Subtypes/PositiveInt>): The size of an indent. Default is
 3 (spaces)
 
 =back

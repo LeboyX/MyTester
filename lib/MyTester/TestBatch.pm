@@ -295,21 +295,19 @@ before 'cookBatch' => sub {
 };
 
 method generateReport (
-      Int :$indent? = 0,
-      Int :$columns? = 80,
+      PositiveInt :$indent? = 0,
+      PositiveInt :$columns? = 80,
       RegexpRef :$delimiter?) { 
-   my $report = MyTester::Reports::Report->new();
+   my $report = MyTester::Reports::Report->new(columns => $columns);
    
    $report->addLines(MyTester::Reports::ReportLine->new(
       indent => $indent,
-      columns => $columns,
       line => "Report for batch '".$self->id()."'"));
        
    for my $test ($self->getTests()) {
       if ($test->meta()->does_role("MyTester::Roles::CanGrade")) {
          my $testReportLine = $test->genReport($test->testStatus());
          
-         $testReportLine->columns($columns);
          $testReportLine->indent($indent + 1);
          
          if (defined $delimiter) {
