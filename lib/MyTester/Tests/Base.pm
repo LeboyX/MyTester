@@ -14,7 +14,8 @@ No set version right now
 =head1 Description
 
 This class does nothing on its own, but provides a base for which to extend
-your own tests. 
+your own tests. It consumes the roles which are expected to be consumed when
+running tests. 
 
 =cut
 

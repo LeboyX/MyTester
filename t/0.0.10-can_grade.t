@@ -35,12 +35,13 @@ my %tests = (
       $grader->maxStatus($goodStatus);
       
       
-      like($grader->genReport($goodStatus), qr/50\/50.*Good/,
+      like($grader->genReport($goodStatus)->getLine(0)->line(), qr/50\/50.*Good/,
          "Grader generated good report correctly");
-      like($grader->genReport($badStatus), qr/25\/50.*Bad/,
+      like($grader->genReport($badStatus)->getLine(0)->line(), qr/25\/50.*Bad/,
          "Grader generated bad report correctly");
          
-      like($grader->genReport($badStatus, $badStatus), qr/25\/25.*Bad/,
+      like($grader->genReport($badStatus, $badStatus)->getLine(0)->line(), 
+         qr/25\/25.*Bad/,
          "Grader generated bad report w/ bad as max");
    },
    
@@ -56,7 +57,8 @@ my %tests = (
       my $r = trap { $grader->genReport($goodStatus, $badStatus)};
       ok($trap->stderr, "Warning emitted for bad max status");
       
-      like($r, qr/50[^\/].*Good/, "Still generated correct report");
+      like($r->getLine(0)->line(), qr/50[^\/].*Good/, 
+         "Still generated correct report");
 
    },
    
@@ -68,7 +70,7 @@ my %tests = (
       dies_ok(sub { $grader->maxStatus($badStatus); }, 
          "Dies when set max had no mapping");
       dies_ok(sub { $grader->genReport($badStatus); },
-         "Dies when generation report for status w/ no mapping");
+         "Dies when generating report for status w/ no mapping");
    },
 );
 

@@ -72,6 +72,8 @@ use TryCatch;
 
 use MyTester::Grade;
 use MyTester::Subtypes;
+use MyTester::Reports::Report;
+use MyTester::Reports::ReportLine;
 ################################################################################
 # Attributes
 ################################################################################
@@ -218,8 +220,9 @@ method genReport (
    
    my $report = 
       sprintf("(%s%s): %s", $got, (defined $max) ? "/$max" : "", $msg);
-      
-   return $report;
+   
+   return MyTester::Reports::Report->new(
+      lines => [ MyTester::Reports::ReportLine->new(line => $report) ]);
 }
 
 before 'genReport' => sub {

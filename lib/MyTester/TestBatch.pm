@@ -107,6 +107,7 @@ has 'testsToRunAtOnce' => (
          addTest => 'push',
          getTests => 'elements',
          numTests => 'count',
+         filterTests => 'grep',
          clearTests => 'clear',
       },
       writer => '_tests'
@@ -125,6 +126,7 @@ has 'tests' => (
       addTest => 'push',
       getTests => 'elements',
       numTests => 'count',
+      filterTests => 'grep',
       clearTests => 'clear',
       _findTestBy => 'first',
       _findTestIndexBy => 'first_index',
@@ -289,6 +291,18 @@ before 'cookBatch' => sub {
    for my $dep (@dependants) {
       $dep->evalProviders();
    }
+};
+
+method generateReport () {
+   for my $test ($self->getTests()) {
+      
+   }
+}
+
+before 'generateReport' => sub {
+   my $self = shift;
+   
+   croak "Cannot generate report for uncooked batch" if !$self->_cooked();
 };
 
 ################################################################################

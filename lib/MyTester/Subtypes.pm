@@ -61,4 +61,23 @@ subtype 'TestStatusKey', as 'Str';
 coerce 'TestStatusKey',
    from 'MyTester::TestStatus',
    via { $_->key(); };
+
+=pod
+
+=head2 PositiveInt
+
+   subtype 'PositiveInt', 
+      as 'Int', 
+      where { $_ > -1 },
+      message { "Number must be > -1" };
+   
+   An int w/ the constraint that it must be > -1
+
+=cut
+
+subtype 'PositiveInt', 
+   as 'Int', 
+   where { $_ > -1 },
+   message { "Number must be > -1" };
+   
 1;
