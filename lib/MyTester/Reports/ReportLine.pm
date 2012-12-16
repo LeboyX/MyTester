@@ -79,6 +79,11 @@ has 'line' => (
       isa => 'PositiveInt',
       is => 'rw',
       default => 0,
+      handles => {
+         incrementIndent => [
+            add => 1
+         ],
+      },
    );
    
    An indent level to indent this report line. Must be > -1
@@ -89,6 +94,11 @@ has 'indent' => (
    isa => 'PositiveInt',
    is => 'rw',
    default => 0,
+   handles => {
+      incrementIndent => [
+         add => 1
+      ],
+   },
 );
 
 =pod
@@ -167,9 +177,40 @@ method render (PositiveInt $indentSize? = 0) {
    return wrap($initialTab, $self->brokenLineIndentation(), $self->line());
 }
 
-method computeBrokenLineIndentation (RegexpRef $delimiter!) {
-   $self->line() =~ $delimiter;
-   return $self->brokenLineIndentation(" " x ($+[0]));
+=pod
+
+=head2 computeBrokenLineIndentation
+
+Given a regex to match on, will compute how much to indent by indenting broken
+lines to line up w/ the end of the first match we get for C<$delimieter>. Sets
+L</brokenLineIndentation> to this value.
+
+B<Parameters>
+
+=over
+
+=item [0]!: Regex we'll use to compute how to indent broken lines
+
+=item [1]? (L<MyTester::Subtypes/PositiveInt): The size of an indent. Default is
+3 (spaces)
+
+=back
+
+=cut
+
+method computeBrokenLineIndentation (
+      RegexpRef $rx!, 
+      PositiveInt $indentSize? = 3) {
+   $self->line() =~ $rx;
+   
+   my $amt = $+[0];
+   my $cols = $self->columns();
+   if ($amt > $cols) {
+      croak "Computed indentation '$amt' cannot be > column max '$cols'";
+   }
+   
+   my $totalBuffer = ($amt + ($self->indent() * $indentSize));
+   return $self->brokenLineIndentation(" " x $totalBuffer);
 }
 
 ################################################################################

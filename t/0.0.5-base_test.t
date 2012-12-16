@@ -71,20 +71,20 @@ my %tests = (
       is_deeply($t->getResolvedGrade(), $g, 
          "Got correctly resolved grade after running test");
       
-      like($t->getResolvedReport()->getLine(0)->line(), qr/70/, 
+      like($t->getResolvedReport()->line(), qr/70/, 
          "Report has score received");
-      like($t->getResolvedReport()->getLine(0)->line(), qr/Passed/, 
+      like($t->getResolvedReport()->line(), qr/Passed/, 
          "Report has msg received");
       
-      like($t->getResolvedReport($maxStatus)->getLine(0)->line(), qr/70\/100/,
+      like($t->getResolvedReport($maxStatus)->line(), qr/70\/100/,
          "Report has 'X out of Y' w/ max passed in");
       
       $t->maxStatus($maxStatus);
-      like($t->getResolvedReport()->getLine(0)->line(), qr/70\/100/, 
+      like($t->getResolvedReport()->line(), qr/70\/100/, 
          "Report has 'X out of Y' w/ max set in attribute");
       
       my $maxToPass = $MyTester::TestStatus::PASSED;
-      like($t->getResolvedReport($maxToPass)->getLine(0)->line(), qr/70\/70/,
+      like($t->getResolvedReport($maxToPass)->line(), qr/70\/70/,
          "Report has 'X out of Y' w/ max passed in to override attribute");
    },
    

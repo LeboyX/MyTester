@@ -101,7 +101,7 @@ my %tests = (
             "Test '$id' passed after cooking");
          ok($_->wasRun, "Test '$id' says 'wasRun'"); 
       }
-   }
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

@@ -66,6 +66,9 @@ use MyTester::Reports::ReportLine;
       default => sub { [] },
       handles => {
          addLines => 'push',
+         addBlankLine => [
+            push => MyTester::Reports::ReportLine->new(line => "")
+         ],
          getLine => 'get',
          getLines => 'elements',
       }
@@ -82,6 +85,9 @@ has 'lines' => (
    default => sub { [] },
    handles => {
       addLines => 'push',
+      addBlankLine => [
+         push => MyTester::Reports::ReportLine->new(line => "")
+      ],
       getLine => 'get',
       getLines => 'elements',
       _mapLines => 'map',

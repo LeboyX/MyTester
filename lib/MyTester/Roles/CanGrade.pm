@@ -72,7 +72,6 @@ use TryCatch;
 
 use MyTester::Grade;
 use MyTester::Subtypes;
-use MyTester::Reports::Report;
 use MyTester::Reports::ReportLine;
 ################################################################################
 # Attributes
@@ -184,7 +183,8 @@ has 'maxStatus' => (
 
 =head2 genReport
 
-Generate a string representing the grade received for a given status. 
+Generate a L<MyTester::Reports::ReportLine> representing the grade received for 
+a given status. 
 
 B<Parameters>
 
@@ -201,7 +201,7 @@ you didn't provide this parameter at all
 =back
 
 B<Returns:> the grade report for the status provided in [0]. In [0] didn't map
-to a status, will return C<undef>.  
+to a status, will croak 
 
 =cut
 
@@ -221,8 +221,7 @@ method genReport (
    my $report = 
       sprintf("(%s%s): %s", $got, (defined $max) ? "/$max" : "", $msg);
    
-   return MyTester::Reports::Report->new(
-      lines => [ MyTester::Reports::ReportLine->new(line => $report) ]);
+   return MyTester::Reports::ReportLine->new(line => $report);
 }
 
 before 'genReport' => sub {

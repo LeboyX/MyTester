@@ -35,12 +35,12 @@ my %tests = (
       $grader->maxStatus($goodStatus);
       
       
-      like($grader->genReport($goodStatus)->getLine(0)->line(), qr/50\/50.*Good/,
+      like($grader->genReport($goodStatus)->line(), qr/50\/50.*Good/,
          "Grader generated good report correctly");
-      like($grader->genReport($badStatus)->getLine(0)->line(), qr/25\/50.*Bad/,
+      like($grader->genReport($badStatus)->line(), qr/25\/50.*Bad/,
          "Grader generated bad report correctly");
          
-      like($grader->genReport($badStatus, $badStatus)->getLine(0)->line(), 
+      like($grader->genReport($badStatus, $badStatus)->line(), 
          qr/25\/25.*Bad/,
          "Grader generated bad report w/ bad as max");
    },
@@ -57,7 +57,7 @@ my %tests = (
       my $r = trap { $grader->genReport($goodStatus, $badStatus)};
       ok($trap->stderr, "Warning emitted for bad max status");
       
-      like($r->getLine(0)->line(), qr/50[^\/].*Good/, 
+      like($r->line(), qr/50[^\/].*Good/, 
          "Still generated correct report");
 
    },

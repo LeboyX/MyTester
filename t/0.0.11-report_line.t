@@ -3,6 +3,7 @@ use 5.010;
 use strict;
 use warnings FATAL => 'all';
 
+use Test::Exception;
 use Test::More;
 
 use TryCatch;
@@ -56,6 +57,15 @@ my %tests = (
       $rl->computeBrokenLineIndentation(qr/: /);
       like($rl->brokenLineIndentation, qr/^ {$expectedAmt}$/,
          "Computed broken line indentation at end of delimiter > 1 char");
+   },
+   
+   computeBrokenIndentationError_test => sub {
+      my $rl = MyTester::Reports::ReportLine->new(
+         line => "(50/55): Here's the reason why");
+      $rl->columns(20);
+      
+      dies_ok(sub { $rl->computeBrokenLineIndentation(qr/y/) }, 
+         "Croaks when broken indentation > columns allowed per line");
    },
 );
 
