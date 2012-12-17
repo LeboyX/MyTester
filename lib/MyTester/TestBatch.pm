@@ -294,6 +294,35 @@ before 'cookBatch' => sub {
    }
 };
 
+=pod
+
+=head2 generateReport
+
+Does what it sounds like - generates a report of all the tests w/in this batch
+based on their C<testStatus>.
+
+B<Parameters>
+
+=over
+
+=item $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
+to put this report on. Default 0
+
+=item $columns? (L<MyTester::Subtypes/PositiveInt>) => The number of columns 
+each report line will be wrapped on. Default 80.
+
+=item $delimeter? (RegexpRef) => If provided, will be matched against all
+L<MyTester::Reports::ReportLine> objects to determine how much indentation to
+give to the parts of the lines that wrap past C<columns>. See 
+L<MyTester::Reports::ReportLine/computeBrokenLineIndentation>.
+
+=back
+
+B<Returns:> a report of all the tests w/in this batch based on their 
+C<testStatus>
+
+=cut
+
 method generateReport (
       PositiveInt :$indent? = 0,
       PositiveInt :$columns? = 80,
@@ -316,10 +345,22 @@ method generateReport (
          
          $report->addLines($testReportLine);
       }
+      else {
+         # TODO
+      }
    }
    
    return $report;
 }
+
+=pod
+
+=head3 Decorations
+
+L</generateReport> will croak before running if this batch has not yet been
+cooked via L</cookBatch>. 
+
+=cut
 
 before 'generateReport' => sub {
    my $self = shift;
