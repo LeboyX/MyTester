@@ -58,7 +58,7 @@ Version 0.0.1
          MyTester::Grade->new(val => "0", msg => "Didn't found our word"));
       
       #
-      # For tests w/ more grade options, this is more useful. For not, it's just
+      # For tests w/ more grade options, this is more useful. For now, it's just
       # telling the test what the maximum, best possible outcome it
       # 
       $_->maxStatus($MyTester::TestStatus::PASSED");
@@ -68,7 +68,14 @@ Version 0.0.1
    # W/ assuming dependencies, if $compiler fails, tests added after it won't 
    # run
    #
-   $testSuite->addTestAfter($compiler, $helloFinderTest, $worldFinderTest);
+   $testSuite->addTestAfter($compiler, $helloFinderTest);
+   
+   #
+   # No dependency is created here - we're just adding tests w/ no reference
+   # to others. So, if $compiler fails, this test will still run. (This isn't
+   # good, but it illustrates functionality).
+   #
+   $testSuite->addTest($worldFinderTest);
    
    $testOven->cookBatches();
    
