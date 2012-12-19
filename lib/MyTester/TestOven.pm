@@ -487,9 +487,9 @@ after 'addTestBefore' => sub {
    
    if ($self->assumeDependencies()) {
       my @providables = grep { 
-         $_->meta()->does_role("MyTester::Roles::Provider");
+         $_->DOES("MyTester::Roles::Provider");
       } @providers;
-      if ($dependant->meta()->does_role("MyTester::Roles::Dependant")) {
+      if ($dependant->DOES("MyTester::Roles::Dependant")) {
          $dependant->addProviders(@providables);
       }
    }
@@ -542,10 +542,10 @@ after 'addTestAfter' => sub {
    my ($self, $provider, @dependants) = @_;
    
    if ($self->assumeDependencies()) {
-      if ($provider->meta()->does_role("MyTester::Roles::Provider")) {
+      if ($provider->DOES("MyTester::Roles::Provider")) {
          
          my @deps = grep { 
-            $_->meta()->does_role("MyTester::Roles::Dependant") 
+            $_->DOES("MyTester::Roles::Dependant") 
          } @dependants;
          for my $dep (@deps) {
             $dep->addProviders($provider);

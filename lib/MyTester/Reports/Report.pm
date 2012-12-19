@@ -30,7 +30,7 @@ this one.
 =cut
 
 package MyTester::Reports::Report;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

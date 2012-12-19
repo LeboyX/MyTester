@@ -53,6 +53,7 @@ use TryCatch;
 use Data::Dumper;
 
 use MyTester::Reports::Report;
+use MyTester::Reports::ReportLine qw(generateDummyReportLine);
 use MyTester::Roles::Testable;
 use MyTester::Subtypes;
 
@@ -287,7 +288,7 @@ before 'cookBatch' => sub {
    }
    
    my @dependants = grep { 
-      $_->meta()->does_role("MyTester::Roles::Dependant")
+      $_->DOES("MyTester::Roles::Dependant")
    } $self->getTests(); 
    for my $dep (@dependants) {
       $dep->evalProviders();
@@ -333,21 +334,18 @@ method generateReport (
       indent => $indent,
       line => "Report for batch '".$self->id()."'"));
        
+   my $testIndent = $indent + 1;
    for my $test ($self->getTests()) {
-      if ($test->meta()->does_role("MyTester::Roles::CanGrade")) {
-         my $testReportLine = $test->genReport($test->testStatus());
+      my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
+         ? $test->genReport($test->testStatus())
+         : generateDummyReportLine();
          
-         $testReportLine->indent($indent + 1);
-         
-         if (defined $delimiter) {
-            $testReportLine->computeBrokenLineIndentation($delimiter);
-         }
-         
-         $report->addLines($testReportLine);
+      $testReportLine->indent($testIndent);
+      if (defined $delimiter) {
+         $testReportLine->computeBrokenLineIndentation($delimiter);
       }
-      else {
-         # TODO
-      }
+      
+      $report->addLines($testReportLine);
    }
    
    return $report;

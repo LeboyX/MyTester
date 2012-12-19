@@ -67,6 +67,13 @@ my %tests = (
       dies_ok(sub { $rl->computeBrokenLineIndentation(qr/y/) }, 
          "Croaks when broken indentation > columns allowed per line");
    },
+   
+   imports_test => sub {
+      use MyTester::Reports::ReportLine qw(generateDummyReportLine);
+      
+      lives_ok(sub { generateDummyReportLine(); }, 
+         "Imported & called generateDummyReportLine()");
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

@@ -13,10 +13,14 @@ my @roles = qw(
 my @tests = qw(
    Base ExecGrep
 );
+my @reports = qw(
+   Report ReportLine
+);
 plan tests => 
    (scalar @classes) +
    (scalar @tests) +
-   (scalar @roles) + 1;
+   (scalar @roles) +
+   (scalar @reports) +  1;
 
 use_ok( 'MyTester' ) || print "Bail out!\n";
 for my $class (@classes) {
@@ -29,4 +33,8 @@ for my $role (@roles) {
 
 for my $test (@tests) {
    use_ok("MyTester::Tests::$test") || print "Bail out!\n";
+}
+
+for my $report (@reports) {
+   use_ok("MyTester::Reports::$report") || print "Bail out!\n";
 }
