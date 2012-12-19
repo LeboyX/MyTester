@@ -1,7 +1,5 @@
 #!perl
-use 5.010;
-use strict;
-use warnings FATAL => 'all';
+use Modern::Perl '2012';
 
 use Test::Exception;
 use Test::More;

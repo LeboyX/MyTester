@@ -15,7 +15,7 @@ No set version right now
 =cut
 
 package MyTester::Roles::Dependant;
-use 5.010;
+use Modern::Perl '2012';
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

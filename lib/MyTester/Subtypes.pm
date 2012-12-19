@@ -14,7 +14,7 @@ No set version right now
 =cut
 
 package MyTester::Subtypes;
-use 5.010;
+use Modern::Perl '2012';
 use Moose::Util::TypeConstraints;
 
 use MyTester::TestStatus;

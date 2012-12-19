@@ -22,6 +22,7 @@ of validation when setting a file.
 =cut
 
 package MyTester::File;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::StrictConstructor;
 use MooseX::Method::Signatures;

@@ -30,7 +30,7 @@ L<MyTester::TestStatus/DEPENDENCY_UNSATISFIED>
 =cut
 
 package MyTester::Roles::Mock::SimpleDependant;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

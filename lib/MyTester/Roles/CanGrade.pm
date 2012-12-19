@@ -57,7 +57,7 @@ same way that C<getGrade> currently does
 =cut
 
 package MyTester::Roles::CanGrade;
-use 5.010;
+use Modern::Perl '2012';
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

@@ -36,7 +36,7 @@ class relies heavily on that module for its forking needs.
 =cut
 
 package MyTester::ExecEx;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use IPC::Run::Timer;
 

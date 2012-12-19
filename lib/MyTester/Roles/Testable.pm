@@ -45,6 +45,7 @@ setup/teardown/evaluate the tests environment
 =cut
 
 package MyTester::Roles::Testable;
+use Modern::Perl '2012';
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;
