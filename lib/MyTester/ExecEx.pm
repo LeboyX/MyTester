@@ -341,7 +341,7 @@ before 'buildHarness' => sub {
    
    my $cmd = $self->cmd();
    if (!which($cmd) && !-x $cmd) {
-      croak "'cmd' cannot be found in filesystem and/or is not executable";
+      croak "'$cmd' cannot be found in filesystem and/or is not executable";
    }
 };
 
