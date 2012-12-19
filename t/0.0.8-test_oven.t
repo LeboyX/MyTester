@@ -76,9 +76,12 @@ my %tests = (
       my $dup = MyTester::Roles::Mock::EmptyTest->new(id => $dupId);
       
       $oven->addTestToCurBatch($test);
-      dies_ok(sub { $oven->addTestToCurBatch($dup) } , 
-         "Threw exception when adding duplicate test");
-      is($oven->numTestsInCurBatch(), 1, "Duplicate test not added");
+      
+      for (qw(addTestToCurBatch addTest)) {
+         dies_ok(sub { $oven->$_($dup) } , 
+            "Threw exception when adding duplicate test w/ '$_'");
+         is($oven->numTestsInCurBatch(), 1, "Duplicate test not added");
+      }
    },
    
    delTestsFromBatchesTest_test => sub {
