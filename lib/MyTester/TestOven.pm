@@ -92,7 +92,7 @@ has 'curBatch' => (
    writer => '_curBatch',
 );
 
-before 'addTestToCurBatch' => sub {
+before [qw(addTestToCurBatch addTest)] => sub {
    my ($self, @ts) = @_;
    
    for my $id (map { $_->id() } @ts) {
@@ -102,7 +102,7 @@ before 'addTestToCurBatch' => sub {
    }
 };
 
-after 'addTestToCurBatch' => sub {
+after [qw(addTestToCurBatch addTest)] => sub {
    my ($self, @ts) = @_;
    
    for my $t (@ts) {
