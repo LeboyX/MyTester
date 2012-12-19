@@ -30,7 +30,7 @@ L<MyTester::TestStatus/FAILED> appropriately.
 =cut
 
 package MyTester::Tests::ExecGrep;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

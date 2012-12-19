@@ -23,7 +23,7 @@ $MyTester::TestStatus::PASSED B<only if> C<failed()> does not return true
 =cut
 
 package MyTester::Roles::Mock::EmptyTest;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

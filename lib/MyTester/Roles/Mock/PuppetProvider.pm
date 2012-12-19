@@ -37,7 +37,7 @@ to whatever you set L<flagForDependants> to.
 =cut
 
 package MyTester::Roles::Mock::PuppetProvider;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

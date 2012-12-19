@@ -1,7 +1,5 @@
 #!/usr/bin/perl
-use 5.010;
-use strict;
-use warnings FATAL => 'all';
+use Modern::Perl '2012';
 use Test::More;
 
 plan tests => 3;

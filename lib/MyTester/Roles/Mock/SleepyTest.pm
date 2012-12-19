@@ -19,7 +19,7 @@ testing in parallel to make sure that, indeed, things are running in parallel.
 =cut
 
 package MyTester::Roles::Mock::SleepyTest;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

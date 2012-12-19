@@ -57,7 +57,7 @@ can depend on it.
 =cut
 
 package MyTester::CompilerForC;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 extends 'MyTester::Tests::Base';
 

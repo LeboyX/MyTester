@@ -20,7 +20,7 @@ running tests.
 =cut
 
 package MyTester::Tests::Base;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

@@ -31,7 +31,7 @@ A TestOven cannot contain two identical tests (where their id's are the same).
 =cut
 
 package MyTester::TestOven;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use Moose::Util::TypeConstraints;
 use MooseX::Method::Signatures;

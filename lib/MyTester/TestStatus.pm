@@ -28,6 +28,7 @@ message.
 =cut
 
 package MyTester::TestStatus;
+use Modern::Perl '2012';
 use Moose;
 
 =pod

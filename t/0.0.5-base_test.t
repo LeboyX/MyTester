@@ -1,7 +1,5 @@
 #!perl
-use 5.010;
-use strict;
-use warnings FATAL => 'all';
+use Modern::Perl '2012';
 
 use Test::More;
 
@@ -90,7 +88,7 @@ my %tests = (
    
    testOnTheFlyExtension => sub {
       package OnTheFlyExtension {
-         use 5.010;
+         use Modern::Perl '2012';
          use Moose;
       
          extends 'MyTester::Tests::Base';

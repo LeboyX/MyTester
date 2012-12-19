@@ -40,6 +40,7 @@ status keys and scores/messages to give in response to those keys.
 =cut
 
 package MyTester::Grade;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

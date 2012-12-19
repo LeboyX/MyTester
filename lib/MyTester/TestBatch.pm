@@ -38,7 +38,7 @@ See L<Parallel::ForkManager> for details on how we manage our forked tests.
 =cut
 
 package MyTester::TestBatch;
-use 5.010;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

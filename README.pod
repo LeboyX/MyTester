@@ -14,6 +14,55 @@ Version 0.0.1
  ./Build test
  ./Build install
 
+=head1 Synopsis
+
+   my $testSuite = MyTester::TestOven->new(assumeDependencies => 1);
+
+   # Flags are not long be default
+   my $compiler = MyTester::CompilerForC->new();
+   $compiler->addFlag(MyTester::ExecFlag->new(name => "ansi", isLong => 0));
+   $compiler->addFlag(MyTester::ExecFlag->new(name => "pedantic"));
+   $compiler->addFlag(MyTester::ExecFlag->new(name => "Wall"));
+   
+   $compiler->workingDir(MyTester::Dir->new()); # Defaults to './'
+   $compiler->addFile(MyTester::File->new(name => "main.c"));
+   
+   $testSuite->addTest($compiler);
+   
+   # Runs a given executable and looks for output
+   my $helloFinderTest = MyTester::Tests::ExecGrep->new(regex => "qr/hello/");
+   my $worldFinderTest = MyTester::Tests::ExecGrep->new(regex => "qr/World/i");
+   
+   for ($helloFinderTest, $worldFinderTest) {
+      $_->cmd($compiler->getPathToExecutable);
+      
+      # Grade if we find the word
+      $_->setGrade(
+         $MyTester::TestStatus::PASSED, 
+         MyTester::Grade->new(val => "10", msg => "We found our word"));
+         
+      # Grade if we don't
+      $_->setGrade(
+         $MyTester::TestStatus::FAILED,
+         MyTester::Grade->new(val => "0", msg => "Didn't found our word"));
+      
+      #
+      # For tests w/ more grade options, this is more useful. For not, it's just
+      # telling the test what the maximum, best possible outcome it
+      # 
+      $_->maxStatus($MyTester::TestStatus::PASSED");
+   }
+   
+   #
+   # W/ assuming dependencies, if $compiler fails, tests added after it won't 
+   # run
+   #
+   $testSuite->addTestAfter($compiler, $helloFinderTest, $worldFinderTest);
+   
+   $testOven->cookBatches();
+   
+   #TODO: Show how to generate a report
+
 =head1 Description
 
 Originally, I graded student code submissions using an often last-minute-patched

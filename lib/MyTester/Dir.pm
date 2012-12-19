@@ -22,6 +22,7 @@ of validation when setting a directory.
 =cut
 
 package MyTester::Dir;
+use Modern::Perl '2012';
 use Moose;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

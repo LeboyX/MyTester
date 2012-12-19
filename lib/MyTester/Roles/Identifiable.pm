@@ -33,6 +33,7 @@ across all your objects.
 =cut
 
 package MyTester::Roles::Identifiable;
+use Modern::Perl '2012';
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;

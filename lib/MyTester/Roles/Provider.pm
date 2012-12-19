@@ -19,6 +19,7 @@ a consumer does, at the time of calling, provide for its dependents.
 =cut
 
 package MyTester::Roles::Provider;
+use Modern::Perl '2012';
 use Moose::Role;
 use MooseX::Method::Signatures;
 use MooseX::StrictConstructor;
