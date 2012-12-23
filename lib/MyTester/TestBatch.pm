@@ -306,6 +306,10 @@ B<Parameters>
 
 =over
 
+=item $withHeader? (Bool) => Whether to include a header for this report. 
+Default 0. If true, will indent all of this report's lines in an extra level of
+indentation, putting only the header at the given indentation level
+
 =item $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
 to put this report on. Default 0
 
@@ -325,22 +329,23 @@ C<testStatus>
 =cut
 
 method generateReport (
+      Bool :$withHeader? = 1,
       PositiveInt :$indent? = 0,
       PositiveInt :$columns? = 80,
-      RegexpRef :$delimiter?) { 
+      RegexpRef :$delimiter?) {
+   my $curIndent = $indent; 
    my $report = MyTester::Reports::Report->new(columns => $columns);
    
-   $report->addLines(MyTester::Reports::ReportLine->new(
-      indent => $indent,
-      line => "Report for batch '".$self->id()."'"));
+   if ($withHeader) {
+      $report->header($self->generateReportHeader(indent => $curIndent ++));
+   }
        
-   my $testIndent = $indent + 1;
    for my $test ($self->getTests()) {
       my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
          ? $test->genReport($test->testStatus())
          : $self->_generateDummyReportLine($columns);
          
-      $testReportLine->indent($testIndent);
+      $testReportLine->indent($curIndent);
       if (defined $delimiter) {
          $testReportLine->computeBrokenLineIndentation($delimiter);
       }
@@ -351,8 +356,33 @@ method generateReport (
    return $report;
 }
 
-method _generateDummyReportLine (
-      PositiveInt $columns) {
+=pod
+
+=head2 generateReportHeader
+
+Generates a header for this batch's report 
+
+B<Parameters>
+
+=over
+
+=item $indent? (L<MyTester::Subtypes/PositiveInt) => Indentation level of 
+generated line. Default 0. 
+
+=back
+
+B<Returns:> a header for this batch's report of type 
+L<MyTester::Reports::ReportLine> 
+
+=cut
+
+method generateReportHeader (PositiveInt :$indent? = 0) {
+   return MyTester::Reports::ReportLine->new(
+      indent => $indent,
+      line => "Report for batch '".$self->id()."'");
+}
+
+method _generateDummyReportLine (PositiveInt $columns) {
    my %args = (
       columns => $columns,
    );

@@ -142,6 +142,38 @@ has 'brokenLineIndentation' => (
 );
 
 ################################################################################
+# Construction
+################################################################################
+
+=pod
+
+=head1 Construction
+
+ReportLine supports a non-hash constructor if you pass in 1 parameters. Like so:
+
+   MyTester::Reports::ReportLine->new("MyLine");
+
+This is equivalent to:
+   
+   MyTester::Reports::ReportLine->new(line => "My Line");
+
+This is used for convenience in L<MyTester::Subtypes/ReportLineStr> to make it
+easier to create ad-hoc report lines from just a Str.
+
+=cut
+
+around BUILDARGS => sub {
+   my ($orig, $class, @args) = @_;
+   
+   if ((scalar @args == 1) && (!ref $args[0])) {
+      return $class->$orig(line => $args[0]);
+   }
+   else {
+      return $class->$orig(@args);
+   }
+};
+
+################################################################################
 # Methods
 ################################################################################
 

@@ -57,6 +57,16 @@ my %tests = (
       
       like($render, $renderRegex, "Report passed columns down to its lines");
    },
+   
+   coerceStrToLine_test => sub {
+      my $r = MyTester::Reports::Report->new();
+      
+      my $line = "My line";
+      $r->addLines($line);
+      
+      is($r->bodyLineCount(), 1, "Str coerced to line and added");
+      is($r->getLine(0)->line(), $line, "Coerced line had correct line val");
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

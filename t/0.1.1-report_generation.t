@@ -146,6 +146,25 @@ my %tests = (
       like($render, $renderRegex, 
          "Generated dummy report for object w/o CanGrade");
    },
+   
+   testBatchReportNoHeader_test => sub {
+      my $tb = MyTester::TestBatch->new(id => "noHeaderBatch");
+      
+      my $gradeMsg = "Passed test that can grade";
+      my $gradeVal = 10;
+      my $canGrade = MyTester::Tests::Base->new(id => "canGrade1");
+      $canGrade->setGrade(
+         $MyTester::TestStatus::PASSED,
+         MyTester::Grade->new(msg => $gradeMsg, val => $gradeVal));
+      $tb->addTest($canGrade);
+      
+      $tb->cookBatch();
+      
+      my $render = $tb->generateReport(withHeader => 0)->render();
+      my $renderRegex = qr/\($gradeVal\): $gradeMsg/;
+      
+      like($render, $renderRegex, "Generated report w/ no header");
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

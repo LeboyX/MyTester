@@ -57,10 +57,10 @@ use MyTester::Reports::ReportLine;
 
 =head1 Public Attributes
 
-=head2 lines
+=head2 body
 
-   has 'lines' => (
-      isa => 'ArrayRef[MyTester::Reports::ReportLine]',
+   has 'body' => (
+      isa => 'ReportLineList, # ArrayRef subtype
       traits => [qw(Array)],
       is => 'rw',
       default => sub { [] },
@@ -71,17 +71,19 @@ use MyTester::Reports::ReportLine;
          ],
          getLine => 'get',
          getLines => 'elements',
+         bodyLineCount,
       }
    );
    
-   The lines in this report.
+The lines in this report. See L<MyTester::Subtypes/ReportLineList>. 
    
 =cut
 
-has 'lines' => (
-   isa => 'ArrayRef[MyTester::Reports::ReportLine]',
+has 'body' => (
+   isa => 'ReportLineList',
    traits => [qw(Array)],
    is => 'rw',
+   coerce => 1,
    default => sub { [] },
    handles => {
       addLines => 'push',
@@ -90,8 +92,46 @@ has 'lines' => (
       ],
       getLine => 'get',
       getLines => 'elements',
+      bodyLineCount => 'count',
       _mapLines => 'map',
    }
+);
+
+=pod
+
+   has 'header' => (
+      isa => 'MyTester::Reports::ReportLine',
+      is => 'rw',
+      predicate => 'headerSet',
+   );
+   
+If set, will be rendered before C<body>.
+
+=cut
+
+has 'header' => (
+   isa => 'MyTester::Reports::ReportLine',
+   is => 'rw',
+   predicate => 'headerSet',
+);
+
+=pod
+
+   has 'footer' => (
+      isa => 'MyTester::Reports::ReportLine',
+      is => 'rw',
+      predicate => 'footerSet',
+   );
+
+If set, will be rendered after C<body>.
+
+
+=cut
+
+has 'footer' => (
+   isa => 'MyTester::Reports::ReportLine',
+   is => 'rw',
+   predicate => 'footerSet',
 );
 
 =pod
@@ -163,10 +203,16 @@ delimited w/ a newline ("\n");
 =cut
 
 method render (PositiveInt $indentSize? = 3) {
-   return join("\n", $self->_mapLines(sub {
+   my @renderedLines = ();
+   
+   push (@renderedLines, $self->header()) if $self->headerSet();
+   push (@renderedLines, $self->getLines());
+   push (@renderedLines, $self->footer()) if $self->footer();
+   
+   return join("\n", map {
       $_->columns($self->columns()); 
       $_->render($indentSize) 
-   }));
+   } @renderedLines);
 }
 
 ################################################################################

@@ -79,5 +79,43 @@ subtype 'PositiveInt',
    as 'Int', 
    where { $_ > -1 },
    message { "Number must be > -1" };
+
+=pod
+
+=head2 ReportLineStr
+
+   subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
+   coerce 'ReportLineStr',
+      from 'Str',
+      via { MyTester::Reports::ReportLine->new($_); };
+
+Added convenience to create L<MyTester::Reports::ReportLine> objects.
+
+=cut
+
+subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
+coerce 'ReportLineStr',
+   from 'Str',
+   via { MyTester::Reports::ReportLine->new($_); };
+
+=pod
+
+=head2 ReportLineList
+
+   subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';
+   subtype 'ReportLineStrList', as 'ArrayRef[Str]';
+   coerce 'ReportLineList',
+      from 'ReportLineStrList',
+      via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
+
+Wraps the convenience of L</ReportLineStr> into an array, as is used for 
+L<MyTester::Reports::Report/body>
+=cut
+
+subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';   
+subtype 'ReportLineStrList', as 'ArrayRef[Str]';
+coerce 'ReportLineList',
+   from 'ReportLineStrList',
+   via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
    
 1;

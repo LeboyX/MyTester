@@ -604,6 +604,16 @@ method cookBatches () {
    }
 }
 
+method generateReport (
+      Bool :$generateHeader? = 1,
+      PositiveInt :$indent? = 0,
+      PositiveInt :$columns? = 80,
+      RegexpRef :$delimiter?) {
+   if ($generateHeader) {
+      
+   }
+}
+
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
