@@ -338,7 +338,7 @@ method generateReport (
    for my $test ($self->getTests()) {
       my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
          ? $test->genReport($test->testStatus())
-         : $self->generateDummyReportLine($indent, $columns, $delimiter);
+         : $self->_generateDummyReportLine($columns);
          
       $testReportLine->indent($testIndent);
       if (defined $delimiter) {
@@ -351,12 +351,9 @@ method generateReport (
    return $report;
 }
 
-method generateDummyReportLine (
-      PositiveInt $indent, 
-      PositiveInt $columns, 
-      RegexpRef $delimiter?) {
+method _generateDummyReportLine (
+      PositiveInt $columns) {
    my %args = (
-      indent => $indent,
       columns => $columns,
    );
    
@@ -365,10 +362,6 @@ method generateDummyReportLine (
       "or acted as a stepping stone to setup another test's environment.";
    
    my $reportLine = MyTester::Reports::ReportLine->new(%args);
-   
-   if (defined $delimiter) {
-      $reportLine->computeBrokenLineIndentation($delimiter);
-   }
    
    return $reportLine;
 }
