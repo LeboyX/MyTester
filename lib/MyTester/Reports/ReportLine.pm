@@ -221,42 +221,4 @@ method computeBrokenLineIndentation (
 # Exported Functions
 ################################################################################
 
-no Moose;
-
-=pod
-
-=head1 Exported Functions
-
-=cut
-
-use Exporter qw(import);
-our @EXPORT = ();
-our @EXPORT_OK = qw(&generateDummyReportLine);
-
-=pod
-
-=head2 generateDummyReportLine
-
-Generates a default L<MyTester::Reports::ReportLine> object w/ parameters you
-provide (L</indent>, L</columns>, etc). 
-
-B<Parameters>
-
-Anything you would normaly pass to the constructor for 
-L<MyTester::Reports::ReporLine>.
-
-B<Returns:> a L<MyTester::Reports::ReportLine> object
-
-=cut
-
-#TODO: Test
-sub generateDummyReportLine {
-   my ($id, %lineConstructorArgs) = @_;
-   
-   $lineConstructorArgs{line} = 
-      "REPORT UNAVAILABLE: Perhaps this represented some intermediary test ".
-      "or acted as a stepping stone to setup another test's environment.";
-   return MyTester::Reports::ReportLine->new(%lineConstructorArgs);
-}
-
 1;
