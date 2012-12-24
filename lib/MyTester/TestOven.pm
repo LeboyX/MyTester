@@ -46,6 +46,8 @@ use TryCatch;
 
 use MyTester::Subtypes;
 use MyTester::TestBatch;
+use MyTester::Reports::Report;
+use MyTester::Reports::ReportLine;
 use MyTester::Roles::Dependant;
 use MyTester::Roles::Identifiable;
 use MyTester::Roles::Provider;
@@ -192,6 +194,25 @@ has 'assumeDependencies' => (
    default => 0
 );
 
+=pod
+
+   has 'cooked' => (
+      isa => 'Bool',
+      is => 'ro',
+      writer => '_cooked',
+      default => 0,
+   );
+
+Tells whether this oven has cooked all its batches or not.
+
+=cut
+
+has 'cooked' => (
+   isa => 'Bool',
+   is => 'ro',
+   writer => '_cooked',
+   default => 0,
+);
 
 ################################################################################
 # Methods
@@ -270,8 +291,25 @@ B<Parameters>
 
 method delTest (TestId $id does coerce) {
    if ($self->hasTest($id)) {
+      my $test = $self->getTest($id);
       $self->getTestBatch($id)->delTest($id);
+      
       $self->_unrecordTest($id);
+      
+      if ($test->DOES("MyTester::Roles::Provider")) {
+         $self->_removeDeletedProviderFromDependants($test);
+      }
+   }
+}
+
+method _removeDeletedProviderFromDependants (
+      MyTester::Roles::Provider $provider!) {
+   for my $batch ($self->getBatches()) {
+      for my $test ($batch->getTests()) {
+         if ($test->DOES("MyTester::Roles::Dependant")) {
+            $test->delProviders($provider);
+         }
+      }
    }
 }
 
@@ -602,18 +640,45 @@ method cookBatches () {
    for my $batch ($self->getBatches()) {
       $batch->cookBatch();
    }
+   $self->_cooked(1);
 }
 
-method generateReport (
-      Bool :$generateHeader? = 1,
+=pod
+
+=head3 Decorations
+
+Before we cook all our batches, any empty batches will be removed
+
+=cut
+
+before 'cookBatches' => sub {
+   my ($self) = shift;
+};
+
+method buildReport (
       PositiveInt :$indent? = 0,
       PositiveInt :$columns? = 80,
       RegexpRef :$delimiter?) {
-   if ($generateHeader) {
-      
+   my $r = MyTester::Reports::Report->new();
+   
+   my %args = (
+      indent => $indent,
+      columns => $columns
+   );
+   $args{delimiter} = $delimiter if defined $delimiter;
+   
+   for my $batch ($self->getBatches()) {
+      $r->catReport($batch->buildReport(%args)); 
    }
+   
+   return $r;
 }
 
+before 'buildReport' => sub {
+   my ($self) = @_;
+   
+   croak "Cannot generate report for uncooked batch" if !$self->cooked();
+};
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################

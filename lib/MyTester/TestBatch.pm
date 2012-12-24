@@ -87,13 +87,9 @@ at runtime to the number of tests in this batch.
 =cut
 
 has 'testsToRunAtOnce' => (
-   isa => 'Int',
+   isa => 'PositiveInt',
    is => 'rw',
    predicate => '_userSetTestsToRunAtOnce',
-   trigger => sub {
-      my ($self, $val) = @_;
-      croak "'testsToRunAtOnce' must be a positive int" if $val < 1;
-   }
 );
 
 =pod
@@ -297,7 +293,7 @@ before 'cookBatch' => sub {
 
 =pod
 
-=head2 generateReport
+=head2 buildReport
 
 Does what it sounds like - generates a report of all the tests w/in this batch
 based on their C<testStatus>.
@@ -337,7 +333,7 @@ C<testStatus>
 
 =cut
 
-method generateReport (
+method buildReport (
       Bool :$withHeader? = 1,
       PositiveInt :$indent? = 0,
       PositiveInt :$columns? = 80,
@@ -346,7 +342,7 @@ method generateReport (
    my $report = MyTester::Reports::Report->new(columns => $columns);
    
    if ($withHeader) {
-      $report->header($self->generateReportHeader(indent => $curIndent ++));
+      $report->header($self->buildReportHeader(indent => $curIndent ++));
    }
        
    for my $test ($self->getTests()) {
@@ -369,12 +365,12 @@ method generateReport (
 
 =head3 Decorations
 
-L</generateReport> will croak before running if this batch has not yet been
+L</buildReport> will croak before running if this batch has not yet been
 cooked via L</cookBatch>. 
 
 =cut
 
-before 'generateReport' => sub {
+before 'buildReport' => sub {
    my $self = shift;
    
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
@@ -382,7 +378,7 @@ before 'generateReport' => sub {
 
 =pod
 
-=head2 generateReportHeader
+=head2 buildReportHeader
 
 Generates a header for this batch's report 
 
@@ -400,7 +396,7 @@ L<MyTester::Reports::ReportLine>
 
 =cut
 
-method generateReportHeader (PositiveInt :$indent? = 0) {
+method buildReportHeader (PositiveInt :$indent? = 0) {
    return MyTester::Reports::ReportLine->new(
       indent => $indent,
       line => "Report for batch '".$self->id()."'");

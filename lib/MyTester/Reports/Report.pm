@@ -177,7 +177,9 @@ into this one
 =cut
 
 method catReport (MyTester::Reports::Report $r!) { 
+   $self->addLines($r->header()) if $r->headerSet();
    $self->addLines($r->getLines());
+   $self->addLines($r->footer()) if $r->footerSet();
 }
 
 =pod

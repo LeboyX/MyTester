@@ -12,6 +12,20 @@ dependant on the outcome of a certain L<MyTester::Roles::Provider> consumer.
 
 No set version right now
 
+=head1 Synopsis
+
+   #
+   # $provider how now $dependant as a dependant AND $provider now has 
+   # $dependant as a provider
+   #
+   $dependant->addProvider($provider);
+
+=head1 Description
+
+This role and L<MyTester::Roles::Provider> are closely tied together. Changes
+to one object's dependants/providers will effect the other's 
+providers/dependants (respectively).
+
 =cut
 
 package MyTester::Roles::Dependant;
@@ -44,7 +58,6 @@ use MyTester::Roles::Provider;
       is => 'ro',
       default => sub { {} },
       handles => {
-         addProviders => 'set',
          getProviders => 'values',
          providerCount => 'count',
       }
@@ -63,19 +76,13 @@ has 'providers' => (
    is => 'ro',
    default => sub { {} },
    handles => {
-      addProviders => 'set',
       getProviders => 'values',
       providerCount => 'count',
+      _addProviders => 'set',
+      _delProviders => 'delete',
+      _hasProvider => 'exists',
    }
 );
-
-around 'addProviders' => sub {
-   my ($orig, $self, @providers) = @_;
-   
-   my %providerMap = map { $_->id() => $_ } @providers;
-   
-   $self->$orig(%providerMap);
-};
 
 =head2 providersFailed
 
@@ -119,6 +126,105 @@ failed their L<MyTester::Roles::Provider/provides> call.
 =cut
 
 requires qw(handleFailedProviders);
+
+=pod
+
+=head2 addProviders
+
+Adds providers to this dependant. Will not add duplicates
+
+B<Parameters>
+
+=over
+
+=item [0-*] (L<Providers|MyTester::Roles::Providers>): slurpy array of providers
+to add to this dependant
+
+=back
+
+B<Returns:> C<$self>
+
+=head3 Side effects
+
+This method will call L<MyTester::Roles::Provider/addDeps> in the effected
+providers you passed in. 
+
+=cut
+
+method addProviders (MyTester::Roles::Provider @providers!) {
+   my @providersToAdd = grep { !$self->hasProvider($_) } @providers;
+   
+   if (@providersToAdd) {
+      $self->_addProviders(map { $_->id() => $_ } @providersToAdd);
+      
+      for my $provider (@providersToAdd) {
+         $provider->addDeps($self);
+      }
+   }
+   
+   return $self;
+}
+
+=pod
+
+=head2 delProviders
+
+Delete providers from this dependant. Will not try to delete things that aren't
+here.
+
+B<Parameters>
+
+=over
+
+=item [0-*] (L<Providers|MyTester::Roles::Providers>): slurpy array of providers
+to delete from this dependant
+
+=back
+
+B<Returns:> C<$self>
+
+=head3 Side effects
+
+This method will call L<MyTester::Roles::Provider/delDeps> in the effected
+providers you passed in. 
+
+=cut
+
+method delProviders (MyTester::Roles::Provider @providers!) {
+   my @providersToDel = grep { $self->hasProvider($_) } @providers;
+   
+   if (@providersToDel) {
+      $self->_delProviders(map { $_->id() => $_ } @providersToDel);
+      
+      for my $provider (@providersToDel) {
+         $provider->delDeps($self);
+      }
+   }
+   
+   return $self;
+}
+
+=pod
+
+=head2 hasProvider
+
+Returns whether this consumer depends on the given provider
+
+B<Parameters>
+
+=over
+
+=item [0] (L<MyTester::Roles::Provider): Provider to look for
+
+=back
+
+B<Returns:> whether this consumer depends on the given provider
+
+=cut
+
+method hasProvider (MyTester::Roles::Provider $provider!) {
+   return $self->_hasProvider($provider->id());
+}
 
 =head1 Public Methods
 

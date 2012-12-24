@@ -33,6 +33,7 @@ use Moose::Util::TypeConstraints;
 
 use MyTester::TestStatus;
 use MyTester::Roles::Testable;
+use MyTester::Roles::Dependant;
 
 =pod
 

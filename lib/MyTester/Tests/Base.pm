@@ -99,7 +99,7 @@ method test () {
 
 =head2 afterTest
 
-Sets C<testStatus> to C<$MyTester::TestStatus::Passed>. Meant to be overridden 
+Sets C<testStatus> to L<MyTester::TestStatus/PASSED>. Meant to be overridden 
 by children.
 
 B<Returns:> C<$self>.
