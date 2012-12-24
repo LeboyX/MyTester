@@ -297,18 +297,7 @@ method delTest (TestId $id does coerce) {
       $self->_unrecordTest($id);
       
       if ($test->DOES("MyTester::Roles::Provider")) {
-         $self->_removeDeletedProviderFromDependants($test);
-      }
-   }
-}
-
-method _removeDeletedProviderFromDependants (
-      MyTester::Roles::Provider $provider!) {
-   for my $batch ($self->getBatches()) {
-      for my $test ($batch->getTests()) {
-         if ($test->DOES("MyTester::Roles::Dependant")) {
-            $test->delProviders($provider);
-         }
+         $_->delProviders($test) for $test->getDeps();
       }
    }
 }

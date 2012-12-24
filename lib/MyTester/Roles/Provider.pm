@@ -61,6 +61,7 @@ use MyTester::Roles::Identifiable;
       default => sub { {} },
       handles => {
          dependantCount => 'count',
+         getDeps => 'values',
       },
    );
 
@@ -77,6 +78,7 @@ has 'dependants' => (
    default => sub { {} },
    handles => {
       dependantCount => 'count',
+      getDeps => 'values',
       _addDeps => 'set',
       _delDeps => 'delete',
       _hasDep => 'exists',
