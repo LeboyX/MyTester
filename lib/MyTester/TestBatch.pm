@@ -306,17 +306,26 @@ B<Parameters>
 
 =over
 
-=item $withHeader? (Bool) => Whether to include a header for this report. 
+=item * $withHeader? (Bool) => Whether to include a header for this report. 
 Default 0. If true, will indent all of this report's lines in an extra level of
-indentation, putting only the header at the given indentation level
+indentation, putting only the header at the given indentation level. I.e
 
-=item $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
+=over
+
+   Your header # Indent level N
+      Report 1 # Indent level N + 1
+      Report 2
+      ...
+      
+=back
+
+=item * $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
 to put this report on. Default 0
 
-=item $columns? (L<MyTester::Subtypes/PositiveInt>) => The number of columns 
+=item * $columns? (L<MyTester::Subtypes/PositiveInt>) => The number of columns 
 each report line will be wrapped on. Default 80.
 
-=item $delimeter? (RegexpRef) => If provided, will be matched against all
+=item * $delimeter? (RegexpRef) => If provided, will be matched against all
 L<MyTester::Reports::ReportLine> objects to determine how much indentation to
 give to the parts of the lines that wrap past C<columns>. See 
 L<MyTester::Reports::ReportLine/computeBrokenLineIndentation>.
@@ -358,6 +367,21 @@ method generateReport (
 
 =pod
 
+=head3 Decorations
+
+L</generateReport> will croak before running if this batch has not yet been
+cooked via L</cookBatch>. 
+
+=cut
+
+before 'generateReport' => sub {
+   my $self = shift;
+   
+   croak "Cannot generate report for uncooked batch" if !$self->cooked();
+};
+
+=pod
+
 =head2 generateReportHeader
 
 Generates a header for this batch's report 
@@ -395,21 +419,6 @@ method _generateDummyReportLine (PositiveInt $columns) {
    
    return $reportLine;
 }
-
-=pod
-
-=head3 Decorations
-
-L</generateReport> will croak before running if this batch has not yet been
-cooked via L</cookBatch>. 
-
-=cut
-
-before 'generateReport' => sub {
-   my $self = shift;
-   
-   croak "Cannot generate report for uncooked batch" if !$self->cooked();
-};
 
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
