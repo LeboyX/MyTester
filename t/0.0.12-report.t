@@ -7,8 +7,9 @@ use Test::More;
 
 use TryCatch;
 
-use MyTester::Reports::Report;
 use MyTester::Reports::ReportLine;
+use MyTester::Reports::Report;
+
 ################################################################################
 
 my %tests = (
@@ -66,6 +67,38 @@ my %tests = (
       
       is($r->bodyLineCount(), 1, "Str coerced to line and added");
       is($r->getLine(0)->line(), $line, "Coerced line had correct line val");
+      
+      my $header = "My Header";
+      $r->header($header);
+      ok($r->headerSet(), "Header set w/ Str arg");
+      is($r->header()->line(), $header, "Header line val correct");
+      
+      my $footer = "My Footer";
+      $r->footer($footer);
+      ok($r->footerSet(), "Footer set w/ Str arg");
+      is($r->footer()->line(), $footer, "Footer line val correct");
+   },
+   
+   addBlank_test => sub {
+      my $r = MyTester::Reports::Report->new();
+      
+      my $line1 = "Line1";
+      my $line2 = "Line2";
+      
+      $r->addLines($line1);
+      $r->addBlankLine();
+      $r->addLines($line2);
+      
+      is($r->bodyLineCount(), 3, 
+         "Report says it has 3 lines - 1 blank & 2 !blank");
+      
+      my $render = $r->render();
+      my $renderRegex = qr/
+         $line1\n
+         \n
+         $line2
+      /x;
+      like($render, $renderRegex, "Report added blank lines");
    },
 );
 

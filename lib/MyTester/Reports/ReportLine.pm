@@ -44,6 +44,64 @@ use Text::Wrap qw(wrap);
 use TryCatch;
 
 use MyTester::Subtypes;
+
+################################################################################
+# Subtypes & Coercions
+################################################################################
+
+=pod
+
+=head1 Subtypes & Coercions
+
+B/c of unusual circular dependency problems between L<MyTester::Subtypes> and
+this class, coercions and subtypes related to this class are put here, despite
+the recommendtation of L<Moose::Manual::BestPractices>. If someone knows how to
+overcome subtype circular dependencies, please let me know. 
+
+=cut
+
+use Moose::Util::TypeConstraints;
+
+=pod
+
+=head2 ReportLineStr
+
+   subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
+   coerce 'ReportLineStr',
+      from 'Str',
+      via { MyTester::Reports::ReportLine->new($_); };
+
+Added convenience to create L<MyTester::Reports::ReportLine> objects.
+
+=cut
+
+subtype 'ReportLineStr', as 'Str';
+coerce 'MyTester::Reports::ReportLine',
+   from 'ReportLineStr',
+   via { MyTester::Reports::ReportLine->new($_); };
+
+=pod
+
+=head2 ReportLineList
+
+   subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';
+   subtype 'ReportLineStrList', as 'ArrayRef[Str]';
+   coerce 'ReportLineList',
+      from 'ReportLineStrList',
+      via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
+
+Wraps the convenience of L</ReportLineStr> into an array, as it's used for 
+L<MyTester::Reports::Report/body>
+
+=cut
+
+subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';
+subtype 'ReportLineStrList', as 'ArrayRef[ReportLineStr]';
+coerce 'ReportLineList',
+   from 'ReportLineStrList',
+   via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
+
+
 ################################################################################
 # Constants
 ################################################################################
@@ -201,7 +259,7 @@ B<Returns:> this line in Str form, formatted and broken up appropriately.
 
 =cut
 
-method render (PositiveInt $indentSize? = 0) {
+method render (Int $indentSize? = 0) {
    local ($Text::Wrap::columns) = $self->columns();
    local ($Text::Wrap::unexpand) = 0;
    
@@ -247,10 +305,6 @@ method computeBrokenLineIndentation (
 
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
-################################################################################
-
-################################################################################
-# Exported Functions
 ################################################################################
 
 1;

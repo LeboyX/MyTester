@@ -42,12 +42,10 @@ use Carp;
 use Data::Dumper;
 use TryCatch;
 
-use MyTester::Subtypes;
 use MyTester::Reports::ReportLine;
 ################################################################################
 # Constants
 ################################################################################
-
 
 ################################################################################
 # Attributes
@@ -112,6 +110,7 @@ If set, will be rendered before C<body>.
 has 'header' => (
    isa => 'MyTester::Reports::ReportLine',
    is => 'rw',
+   coerce => 1,
    predicate => 'headerSet',
 );
 
@@ -131,6 +130,7 @@ If set, will be rendered after C<body>.
 has 'footer' => (
    isa => 'MyTester::Reports::ReportLine',
    is => 'rw',
+   coerce => 1,
    predicate => 'footerSet',
 );
 

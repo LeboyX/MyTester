@@ -4,12 +4,26 @@
 
 =head1 Name
 
-MyTester::Subtypes - Where all subtypes and definitions fo the MyTester proejct
-are defined
+MyTester::Subtypes - Where [almost] all subtypes and definitions of the MyTester
+proejct are defined. The "basic" subtypes and coercions live here. 
 
 =head1 Version
 
 No set version right now
+
+=head1 Caveats
+
+While L<Moose::Manual::BestPractices> recommends all subtypes in one module, 
+this could not be done for the MyTester project. The following is a list of the
+locations of all other, more specific subtype/coercion definitions:
+
+=over
+
+=item * L<MyTester::Reports::ReportLine>: Defines subtypes to make it easier
+to make a [list of] L<ReportLine|MyTester::Reports::ReportLine> objects by just 
+passing Str's around
+
+=back
 
 =cut
 
@@ -31,7 +45,7 @@ use MyTester::Roles::Testable;
       from 'MyTester::Roles::Testable',
       via { $_->id() };
       
-Wrapped the id of a test by letting you either 1) Use the test's id explicitly
+Wraps the id of a test by letting you either 1) Use the test's id explicitly
 (which is already a Str) or 2) Use the L<MyTester::Roles::Testable> object 
 itself and let the coercion defined here do the work for you.
 
@@ -80,42 +94,4 @@ subtype 'PositiveInt',
    where { $_ > -1 },
    message { "Number must be > -1" };
 
-=pod
-
-=head2 ReportLineStr
-
-   subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
-   coerce 'ReportLineStr',
-      from 'Str',
-      via { MyTester::Reports::ReportLine->new($_); };
-
-Added convenience to create L<MyTester::Reports::ReportLine> objects.
-
-=cut
-
-subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
-coerce 'ReportLineStr',
-   from 'Str',
-   via { MyTester::Reports::ReportLine->new($_); };
-
-=pod
-
-=head2 ReportLineList
-
-   subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';
-   subtype 'ReportLineStrList', as 'ArrayRef[Str]';
-   coerce 'ReportLineList',
-      from 'ReportLineStrList',
-      via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
-
-Wraps the convenience of L</ReportLineStr> into an array, as is used for 
-L<MyTester::Reports::Report/body>
-=cut
-
-subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';   
-subtype 'ReportLineStrList', as 'ArrayRef[Str]';
-coerce 'ReportLineList',
-   from 'ReportLineStrList',
-   via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
-   
 1;
