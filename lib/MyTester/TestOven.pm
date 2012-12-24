@@ -150,7 +150,8 @@ has 'batches' => (
       searchBatchIndeces => 'first_index',
       _addBatch => 'push',
       _getLatestBatch => ['get' => -1],
-      _insertBatch => 'insert'
+      _insertBatch => 'insert',
+      _delBatch => 'delete',
    },
 );
 
@@ -229,6 +230,10 @@ method BUILD {
 };
 
 method _updateCurBatch {
+   my $latest = $self->_getLatestBatch();
+   if (!defined $latest) {
+      $self->newBatch();
+   }
    $self->_curBatch($self->_getLatestBatch());
 }
 
@@ -239,15 +244,61 @@ method _updateCurBatch {
 Inserts a new batch at the end of our list of batches. Updates L</curBatch>
 to the newly-added batch.
 
+B<Returns:> C<$self>
+
 =cut
 
 method newBatch () {
    $self->_addBatch(MyTester::TestBatch->new());
+   return $self;
 }
 
 after 'newBatch' => sub {
    my ($self) = shift;
    $self->_updateCurBatch();
+};
+
+=pod
+
+=head2 delBatch
+
+Deletes a given batch.
+
+B<Parameters>
+
+=over
+
+=item [0] (Int): Batch num to delete (0-index; allows negative indexing). 
+
+=back
+
+B<Returns:> C<$self>
+
+=head3 Decorations
+
+Will C<croak> before running if num provided doesn't exist
+
+=cut
+
+method delBatch (Int $batchNum!) {
+   my $batchToDel = $self->getBatch($batchNum);
+   
+   for my $test ($batchToDel->getTests()) {
+      $self->_unrecordTest($test);
+      $self->_removeTestDependants($test);
+   }
+   
+   $self->_delBatch($batchNum);
+   $self->_updateCurBatch();
+   
+   return $self;
+}
+
+before 'delBatch' => sub {
+   my ($self, $batchNum) = @_;
+   
+   croak "Couldn't find '$batchNum'. We have '".$self->batchCount()."' batches"
+      if (!defined $self->getBatch($batchNum)); 
 };
 
 =pod
@@ -295,10 +346,13 @@ method delTest (TestId $id does coerce) {
       $self->getTestBatch($id)->delTest($id);
       
       $self->_unrecordTest($id);
-      
-      if ($test->DOES("MyTester::Roles::Provider")) {
-         $_->delProviders($test) for $test->getDeps();
-      }
+      $self->_removeTestDependants($test);
+   }
+}
+
+method _removeTestDependants (MyTester::Roles::Testable $test!) {
+   if ($test->DOES("MyTester::Roles::Provider")) {
+      $_->delProviders($test) for $test->getDeps();
    }
 }
 

@@ -339,6 +339,45 @@ my %tests = (
       is($dependant->providerCount(), 0, 
          "Removing provider from oven removed dependency rule from dependant");  
    },
+   
+   delBatches_test => sub {
+      my $oven = MyTester::TestOven->new(assumeDependencies => 1);
+      
+      my $dependant = MyTester::Roles::Mock::SimpleDependant->new();
+      my $provider = MyTester::Roles::Mock::PuppetProvider->new();
+      
+      $oven->addTest($provider);
+      $oven->addTestAfter($provider, $dependant);
+      $oven->newBatch()->addTest(MyTester::Roles::Mock::EmptyTest->new());
+      
+      is($dependant->providerCount(), 1, "Dependant has 1 provider");
+      is($provider->dependantCount(), 1, "Provider has 1 dependant");
+      
+      my $deletedBatch = $oven->getBatch(0);
+      $oven->delBatch(0);
+      
+      is($dependant->providerCount(), 0, "Dependant has 0 provider");
+      is($provider->dependantCount(), 0, "Provider has 0 dependant");
+      ok(!$oven->getTestBatch($provider), "Provider's batch not found in oven");
+      ok(!$oven->hasTest($provider), 
+         "Oven no longer has test from deleted batch");
+      ok($deletedBatch->getTest($provider), 
+         "Deleted batch still retained its own tests");
+      
+      $oven->delBatch(1);
+      ok($oven->curBatch()->hasTest($dependant), 
+         "Cur batch updated after deleting cur batch in 2-batch oven");
+         
+      my $curBatchId = $oven->curBatch()->id();
+      $oven->delBatch(0);
+      is($oven->batchCount(), 1, 
+         "After deleting only batch, 1 newly-added batch remains");
+      isnt($oven->curBatch()->id(), $curBatchId, 
+         "Auto-added new/cur batch has different id (duh)");
+      is($oven->curBatch()->numTests(), 0, 
+         "Auto-added new/cur batch has no tests (duh)");
+   },
+   
 #   trimEmptyBatches_test => sub {
 #      my $oven = MyTester::TestOven->new();
 #      $oven->addTest(MyTester::Roles::Mock::EmptyTest->new());
@@ -349,10 +388,6 @@ my %tests = (
 #      is($oven->batchCount(), "3", "3 batches - empty ones");
 #      $oven->cookBatches();
 #      is($oven->batchCount(), "1", "Empty batches trimmed out during cooking");
-#   },
-#   
-#   delBatches_test => sub {
-#      
 #   },
 );
 
