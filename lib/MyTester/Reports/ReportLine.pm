@@ -23,10 +23,6 @@ Wraps up reporting on tests into more than just a simple string. A ReportLine
 encapsulated a single line in a report (duh). It'll handle things like 
 line-wrapping (if you desire). 
 
-=head1 TODO
-
-Support line wrapping and justification on a given 'break'
-
 =cut
 
 package MyTester::Reports::ReportLine;
@@ -66,9 +62,9 @@ use Moose::Util::TypeConstraints;
 
 =head2 ReportLineStr
 
-   subtype 'ReportLineStr', as 'MyTester::Reports::ReportLine';
-   coerce 'ReportLineStr',
-      from 'Str',
+   subtype 'ReportLineStr', as 'Str';
+   coerce 'MyTester::Reports::ReportLine',
+      from 'ReportLineStr',
       via { MyTester::Reports::ReportLine->new($_); };
 
 Added convenience to create L<MyTester::Reports::ReportLine> objects.
@@ -85,7 +81,7 @@ coerce 'MyTester::Reports::ReportLine',
 =head2 ReportLineList
 
    subtype 'ReportLineList', as 'ArrayRef[MyTester::Reports::ReportLine]';
-   subtype 'ReportLineStrList', as 'ArrayRef[Str]';
+   subtype 'ReportLineStrList', as 'ArrayRef[ReportLineStr]';
    coerce 'ReportLineList',
       from 'ReportLineStrList',
       via { [ map { MyTester::Reports::ReportLine->new($_) } @{$_} ] };
