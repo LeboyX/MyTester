@@ -696,6 +696,8 @@ Before we cook all our batches, any empty batches will be removed
 
 before 'cookBatches' => sub {
    my ($self) = shift;
+   
+   ...;
 };
 
 method buildReport (
