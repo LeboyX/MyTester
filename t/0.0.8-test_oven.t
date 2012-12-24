@@ -238,9 +238,11 @@ my %tests = (
       
       is($oven->numTests, 6, "Six tests added");
       
+      is($oven->cooked(), 0, "Status is currently !cooked");
       my $startTime = time();
       $oven->cookBatches();
       my $endTime = time();
+      isnt($oven->cooked(), 0, "Status is currently cooked");
       
       my $interval = $endTime - $startTime;
       ok($interval > 5 && $interval < 7, sprintf(
@@ -315,6 +317,43 @@ my %tests = (
       ok(!$dependant->wasRun(), "Dependant wasn't run");
       ok($dependant->providersFailed(), "Dependant records failed providers");
    },
+   
+   delProviderTests_test => sub {
+      my $oven = MyTester::TestOven->new();
+      
+      my $dependant = 
+         MyTester::Roles::Mock::SimpleDependant->new(id => "iDepend");
+      my $provider = 
+         MyTester::Roles::Mock::PuppetProvider->new(id => "removeMe");
+      
+      $dependant->addProviders($provider);
+      
+      $oven->addTest($provider);
+      $oven->newBatch();
+      $oven->addTest($dependant);
+
+      is($dependant->providerCount(), 1, "Has 1 provider before delete");
+      
+      $oven->delTest($provider);
+      
+      is($dependant->providerCount(), 0, 
+         "Removing provider from oven removed dependency rule from dependant");  
+   },
+#   trimEmptyBatches_test => sub {
+#      my $oven = MyTester::TestOven->new();
+#      $oven->addTest(MyTester::Roles::Mock::EmptyTest->new());
+#      
+#      $oven->newBatch();
+#      $oven->newBatch();
+#      
+#      is($oven->batchCount(), "3", "3 batches - empty ones");
+#      $oven->cookBatches();
+#      is($oven->batchCount(), "1", "Empty batches trimmed out during cooking");
+#   },
+#   
+#   delBatches_test => sub {
+#      
+#   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {
