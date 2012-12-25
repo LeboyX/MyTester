@@ -7,6 +7,7 @@ use Data::Dumper;
 
 use Test::Exception;
 use Test::More;
+use Test::Trap;
 
 use TryCatch;
 
@@ -337,7 +338,14 @@ my %tests = (
       $oven->delTest($provider);
       
       is($dependant->providerCount(), 0, 
-         "Removing provider from oven removed dependency rule from dependant");  
+         "Removing provider from oven removed dependency rule from dependant");
+      
+      $dependant->addProviders($provider);
+      $oven->addTestsToBatch(0, $provider);
+      
+      $oven->delTest($provider, preserveDependencies => 1);
+      is($dependant->providerCount(), 1,
+         "Removing test w/ preserved dependencies worked");
    },
    
    delBatches_test => sub {
@@ -378,17 +386,37 @@ my %tests = (
          "Auto-added new/cur batch has no tests (duh)");
    },
    
-#   trimEmptyBatches_test => sub {
-#      my $oven = MyTester::TestOven->new();
-#      $oven->addTest(MyTester::Roles::Mock::EmptyTest->new());
-#      
-#      $oven->newBatch();
-#      $oven->newBatch();
-#      
-#      is($oven->batchCount(), "3", "3 batches - empty ones");
-#      $oven->cookBatches();
-#      is($oven->batchCount(), "1", "Empty batches trimmed out during cooking");
-#   },
+   invertProviderDependantOrder_test => sub {
+      my $oven = MyTester::TestOven->new(assumeDependencies => 1);
+      
+      my $dependant = MyTester::Roles::Mock::SimpleDependant->new();
+      my $provider = MyTester::Roles::Mock::PuppetProvider->new();
+      
+      $oven->addTest($dependant);
+      $oven->addTestBefore($dependant, $provider);
+      
+      $oven->newBatch();
+      trap { 
+         $oven->moveTest($provider, $oven->getTestBatchNum($dependant) + 1);
+      };
+      ok($trap->stderr, 
+         "Warning emitted for moving provider with/after dependant");
+      
+      is($dependant->providerCount(), 0, "Dependant link broken by move");
+      is($provider->dependantCount(), 0, "Provider link broken by move");
+   },
+   
+   trimEmptyBatches_test => sub {
+      my $oven = MyTester::TestOven->new();
+      $oven->addTest(MyTester::Roles::Mock::EmptyTest->new());
+      
+      $oven->newBatch();
+      $oven->newBatch();
+      
+      is($oven->batchCount(), "3", "3 batches - 2 empty ones");
+      $oven->cookBatches();
+      is($oven->batchCount(), "1", "Empty batches trimmed out during cooking");
+   },
 );
 
 while (my ($testName, $testCode) = each(%tests)) {

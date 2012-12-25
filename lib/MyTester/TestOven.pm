@@ -328,25 +328,34 @@ method hasTest (TestId $id does coerce) {
 =head2 delTest
 
 Deletes a given test from this oven. If the test does not exist in the first
-place, this will be a no-op. 
+place, this will be a no-op. If the test is a 
+L<provider|MyTester::Roles::Provider> and you don't ask otherwise, this will 
+remove the dependency relation between the deleted provider and all its
+L<dependants|MyTester::Roles::Dependant>. 
 
 B<Parameters>
 
 =over
 
-=item $id => L<MyTester::Subtypes/TestId>: Testable object or id to delete
+=item [0] L<MyTester::Subtypes/TestId>: Testable object or id to delete
+
+=item $preserveDependencies? (Bool): If set, will not remove dependencies 
+if the test you're deleting is a provider.
 
 =back
 
 =cut
 
-method delTest (TestId $id does coerce) {
+method delTest (TestId $id does coerce, Bool :$preserveDependencies? = 0) {
    if ($self->hasTest($id)) {
       my $test = $self->getTest($id);
       $self->getTestBatch($id)->delTest($id);
       
       $self->_unrecordTest($id);
-      $self->_removeTestDependants($test);
+      
+      if (!$preserveDependencies) {
+         $self->_removeTestDependants($test);
+      }
    }
 }
 
@@ -665,8 +674,83 @@ method moveTest (TestId $id! does coerce, Int $batchNum!) {
    }
    
    my $test = $self->getTest($id);
-   $self->delTest($id);
+   $self->delTest($id, preserveDependencies => 1);
    $self->addTestsToBatch($batchNum, $test);
+   
+   return $self;
+}
+
+before 'moveTest' => sub {
+   my ($self, $testId, $batchNum) = @_;
+
+   my $test = $self->getTest($testId);
+   my $testBatch = $self->getTestBatchNum($test);
+   
+   if ($test->DOES("MyTester::Roles::Dependant")) {
+      for my $provider ($test->getProviders()) {
+         my $providerBatch = $self->getTestBatchNum($provider);
+         if ($self->hasTest($provider) && $providerBatch >= $batchNum) {
+            my $providerId = $provider->id();
+            
+            carp "Moving dependant test to batch: '$batchNum' >= ".
+               "Provider batch: '$providerBatch. Removing dependency.";
+               ;
+            $test->delProvider($provider);
+         }
+      }
+   }
+   else {
+      if ($test->DOES("MyTester::Roles::Provider")) {
+         say Dumper $test;
+         for my $dependant ($test->getDeps()) {
+            my $dependantId = $dependant->id();
+            
+            carp "Warning: Moving provider '$testId' into same or greater ".
+               "batch as provider '$dependantId'. Removing dependency.";
+            
+            $test->delDeps($dependant);
+         }
+      }
+   }
+};
+
+=pod
+
+=head2 trimBatches
+
+Removed batches from this oven given a criteria. If none it provided, will 
+remove batches which have no tests in them. 
+
+B<Parameters>
+
+=over
+
+=item [0]? (CodeRef): CodeRef which, if provided, will be passed a 
+L<testBatch|MyTester::TestBatch> object. If this coderef returns "true", the
+associated batch will be removed from this oven. If you do not pass this in, 
+this will be treated as if you passed in 
+
+   sub {
+      return $_[0]->numTests() == 0
+   }
+
+=back
+
+B<Returns:> C<$self>
+
+=cut
+
+method trimBatches (CodeRef $func?) {
+   my $grepFunc = (defined $func) ? $func : sub {
+      return $_[0]->numTests() == 0;
+   };
+   
+   my @batches = $self->getBatches();
+   for (my $batchNum = @batches - 1; $batchNum > -1; $batchNum --) {
+      if (&{$grepFunc}($batches[$batchNum])) {
+         $self->delBatch($batchNum);
+      }
+   }
    
    return $self;
 }
@@ -696,9 +780,14 @@ Before we cook all our batches, any empty batches will be removed
 
 before 'cookBatches' => sub {
    my ($self) = shift;
-   
-   ...;
+   $self->trimBatches();
 };
+
+=pod
+
+TODO
+
+=cut
 
 method buildReport (
       PositiveInt :$indent? = 0,
