@@ -214,7 +214,7 @@ B<Parameters>
 
 =over
 
-=item [0] (L<MyTester::Roles::Provider): Provider to look for
+=item [0] (L<MyTester::Roles::Provider>): Provider to look for
 
 =back
 

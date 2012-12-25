@@ -841,14 +841,12 @@ method buildReport (
       $bodyIndent = $indent + 1;
    }
    
-   my %args = (
-      indent => $bodyIndent,
-      columns => $columns
-   );
-   $args{delimiter} = $delimiter if defined $delimiter;
-
    for my $batch ($self->getBatches()) {
-      $r->catReport($batch->buildReport(%args)); 
+      $batch->reportBaseIndent($bodyIndent);
+      $batch->reportColumns($columns);
+      $batch->reportWrapLineRegex($delimiter) if defined $delimiter;
+      
+      $r->catReport($batch->buildReport()); 
    }
    
    if ($withFooter) {

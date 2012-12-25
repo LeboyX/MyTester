@@ -50,7 +50,9 @@ my %tests = (
    },
    
    testBatchGeneratedWrappedReport_test => sub {
-      my $tb = MyTester::TestBatch->new(id => 'myBatch');
+      my $tb = MyTester::TestBatch->new(
+         id => 'myBatch',
+         reportColumns => 30);
       
       for (10, 20, 30) {
          my $t = MyTester::Tests::Base->new();
@@ -65,7 +67,7 @@ my %tests = (
       $tb->cookBatch();
       
       my $indentSize = 3; # Default
-      my $render = $tb->buildReport(columns => 30)->render();
+      my $render = $tb->buildReport()->render();
       
       my $renderRegex = qr/
          .*myBatch.*\n
@@ -81,7 +83,10 @@ my %tests = (
    },
    
    testBatchReportWithDelimiter_test => sub {
-      my $tb = MyTester::TestBatch->new(id => 'myBatch');
+      my $tb = MyTester::TestBatch->new(
+         id => 'myBatch',
+         reportColumns => 30,
+         reportWrapLineRegex => qr/: /);
       
       for (10, 20, 30) {
          my $t = MyTester::Tests::Base->new();
@@ -95,8 +100,7 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = 
-         $tb->buildReport(columns => 30, delimiter=> qr/: /)->render();
+      my $render = $tb->buildReport()->render();
       
       my $msgTemplate = "   (XX/XX): P";
       my $brokenIndentAmt = index($msgTemplate, ": ") + 2;
@@ -115,7 +119,9 @@ my %tests = (
    },
    
    testBatchReportWithUngradeable_test => sub {
-      my $tb = MyTester::TestBatch->new(id => "batchWithCannotGrades");
+      my $tb = MyTester::TestBatch->new(
+         id => "batchWithCannotGrades",
+         reportWrapLineRegex => qr/: /);
       
       my $canGrade = MyTester::Tests::Base->new(id => "canGrade1");
       $canGrade->setGrade(
@@ -134,7 +140,7 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = $tb->buildReport(delimiter => qr/: /)->render();
+      my $render = $tb->buildReport()->render();
       
       my $renderRegex = qr/
          .*batchWithCannotGrades.*\n
@@ -148,7 +154,9 @@ my %tests = (
    },
    
    testBatchReportNoHeader_test => sub {
-      my $tb = MyTester::TestBatch->new(id => "noHeaderBatch");
+      my $tb = MyTester::TestBatch->new(
+         id => "noHeaderBatch",
+         reportWithHeader => 0);
       
       my $gradeMsg = "Passed test that can grade";
       my $gradeVal = 10;
@@ -160,7 +168,7 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = $tb->buildReport(withHeader => 0)->render();
+      my $render = $tb->buildReport()->render();
       my $renderRegex = qr/\($gradeVal\): $gradeMsg/;
       
       like($render, $renderRegex, "Generated report w/ no header");

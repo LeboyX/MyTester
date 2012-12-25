@@ -35,6 +35,19 @@ the system, you can limit how many tests are run at a given time.
 
 See L<Parallel::ForkManager> for details on how we manage our forked tests. 
 
+=head1 Roles Consumed
+
+=for comment
+Note that the actual code for this is located at the bottom of the class. See
+L<MooseX::Method::Signatures/"BUGS, CAVEATS AND NOTES"> for why the reasons why.
+
+=head2 L<MyTester::Roles::Identifiable>
+
+=head2 L<MyTester::Roles::GenReport>
+
+Extends L<MyTester::Roles::GenReport/reportWithHeader> by setting its default 
+to true
+
 =cut
 
 package MyTester::TestBatch;
@@ -298,61 +311,30 @@ before 'cookBatch' => sub {
 Does what it sounds like - generates a report of all the tests w/in this batch
 based on their C<testStatus>.
 
-B<Parameters>
-
-=over
-
-=item * $withHeader? (Bool) => Whether to include a header for this report. 
-Default 0. If true, will indent all of this report's lines in an extra level of
-indentation, putting only the header at the given indentation level. I.e
-
-=over
-
-   Your header # Indent level N
-      Report 1 # Indent level N + 1
-      Report 2
-      ...
-      
-=back
-
-=item * $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
-to put this report on. Default 0
-
-=item * $columns? (L<MyTester::Subtypes/PositiveInt>) => The number of columns 
-each report line will be wrapped on. Default 80.
-
-=item * $delimeter? (RegexpRef) => If provided, will be matched against all
-L<MyTester::Reports::ReportLine> objects to determine how much indentation to
-give to the parts of the lines that wrap past C<columns>. See 
-L<MyTester::Reports::ReportLine/computeBrokenLineIndentation>.
-
-=back
-
 B<Returns:> a report of all the tests w/in this batch based on their 
-C<testStatus>
+C<testStatus>. More specifically, messages and values are retrieved through
+functionality defined in L<MyTester::Roles::CanGrade>.
 
 =cut
 
-method buildReport (
-      Bool :$withHeader? = 1,
-      PositiveInt :$indent? = 0,
-      PositiveInt :$columns? = 80,
-      RegexpRef :$delimiter?) {
-   my $curIndent = $indent; 
-   my $report = MyTester::Reports::Report->new(columns => $columns);
+method buildReport () {
+   my $curIndent = $self->reportBaseIndent(); 
+   my $report = MyTester::Reports::Report->new(
+      columns => $self->reportColumns());
    
-   if ($withHeader) {
+   if ($self->reportWithHeader()) {
       $report->header($self->buildReportHeader(indent => $curIndent ++));
    }
        
    for my $test ($self->getTests()) {
       my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
          ? $test->genReport($test->testStatus())
-         : $self->_generateDummyReportLine($columns);
+         : $self->_generateDummyReportLine($self->reportColumns());
          
       $testReportLine->indent($curIndent);
-      if (defined $delimiter) {
-         $testReportLine->computeBrokenLineIndentation($delimiter);
+      if ($self->wrapLineRegexDefined()) {
+         $testReportLine->computeBrokenLineIndentation(
+            $self->reportWrapLineRegex());
       }
       
       $report->addLines($testReportLine);
@@ -394,18 +376,10 @@ method _generateDummyReportLine (PositiveInt $columns) {
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
 
-=pod
-
-=head1 Roles Consumed
-
-=over
-
-=item MyTester::Roles::Identifiable
-
-=back
-
-=cut
-
 with qw(MyTester::Roles::GenReport MyTester::Roles::Identifiable);
+
+has '+reportWithHeader' => (
+   default => 1,
+);
 
 1;
