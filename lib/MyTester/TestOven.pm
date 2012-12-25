@@ -785,34 +785,123 @@ before 'cookBatches' => sub {
 
 =pod
 
-TODO
+=head2 buildReport
+
+Builds a report summarizing all the L<batches|MyTester::TestBatch> objects 
+inside this object. Basically wraps calling L<MyTester::TestBatch/buildReport>
+for all the batches in this object.
+
+B<Parameters>
+
+=over
+
+=item * $withHeader? (Bool): Whether to generate this report w/ a header. 
+Defaults to true. If true, will indent all lines in the report on level more, 
+like so:
+
+=over
+
+   # Report for Oven # Identation N
+      # Report for batch # Indentation N + 1
+         # Test 1  # Indentation N + 2
+
+=back
+
+=item * $withFooter? (Bool): Whether to generate this report w/ a footer.
+Default to false, as this feature is not implemented yet. 
+
+=item * $indent? (L<PositiveInt|MyTester::Subtypes/PositiveInt>): How deep to 
+indent the report. Default 0
+
+=item * $columns? (L<PositiveInt|MyTester::Subtypes/PositiveInt>): How many 
+columns to allow in a report line before wrapping it. Default 80.
+
+=item * $delimiter? (RegexpRef): If provided, will be used to determine how
+much indentation to give the parts of a L<line|MyTester::Reports::ReportLine>
+that go beyond the $columns value and are wrapped. 
+
+=back
+
+B<Returns:> the L<report|MyTester::Reports::Report> generated
 
 =cut
 
 method buildReport (
+      Bool :$withHeader? = 1,
+      Bool :$withFooter? = 0,
       PositiveInt :$indent? = 0,
       PositiveInt :$columns? = 80,
       RegexpRef :$delimiter?) {
    my $r = MyTester::Reports::Report->new();
    
+   my $bodyIndent = $indent;
+   
+   if ($withHeader) {
+      $r->addLines($self->buildReportHeader($indent));
+      $bodyIndent = $indent + 1;
+   }
+   
    my %args = (
-      indent => $indent,
+      indent => $bodyIndent,
       columns => $columns
    );
    $args{delimiter} = $delimiter if defined $delimiter;
-   
+
    for my $batch ($self->getBatches()) {
       $r->catReport($batch->buildReport(%args)); 
    }
    
+   if ($withFooter) {
+      $r->addLines($self->buildReportFooter($indent));
+   }
+   
    return $r;
 }
+
+=pod
+
+=head3 Decorations
+   
+Croaks if this oven has not yet been cooked via L</cookBatches>.
+   
+=cut
 
 before 'buildReport' => sub {
    my ($self) = @_;
    
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
 };
+
+=pod
+
+=head2 buildReportHeader
+
+Builds a L<line|MyTester::Reports::ReportLine> for display as the header of
+a L<report|MyTester::Reports::ReportLien> built by L</buildReport>
+
+B<Parameters>
+
+=over
+
+=item * $indent (L<PositiveInt|MyTester::Subtypes/PositiveInt>): Indentation
+level to put header at. Default 0
+
+=back
+
+B<Returns:> the L<line|MyTester::Reports::ReportLine> generated as header
+
+=cut
+
+method buildReportHeader (PositiveInt $indent? = 0) {
+   return MyTester::Reports::ReportLine->new(
+      indent => $indent,
+      line => "Summary report for '".$self->id()."'");
+}
+
+method buildReportFooter (PositiveInt $indent? = 0) {
+   ...; #TODO
+}
+
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################

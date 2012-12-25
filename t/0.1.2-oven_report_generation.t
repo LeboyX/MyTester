@@ -54,18 +54,15 @@ my %tests = (
       
       my $renderRegex = qr/
          .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){3}
-         .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){3}
-         .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){2}
-            \ {3}\($val\):\ Passed\ the\ test$
+         \ {3}.*\n
+            (\ {6}\($val\):\ Passed\ the\ test\n){3}
+         \ {3}.*\n
+            (\ {6}\($val\):\ Passed\ the\ test\n){3}
+         \ {3}.*\n
+            (\ {6}\($val\):\ Passed\ the\ test\n){2}
+            \ {6}\($val\):\ Passed\ the\ test$
       /x;
-      
-      TODO: {
-         local $TODO = "Empty batch trimming not yet implemented";
-         like($render, $renderRegex, "Report w/ no header build correctly");
-      }  
+      like($render, $renderRegex, "Report w/ no header build correctly");
    },
 );
 
