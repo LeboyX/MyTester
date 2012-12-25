@@ -376,32 +376,6 @@ before 'buildReport' => sub {
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
 };
 
-=pod
-
-=head2 buildReportHeader
-
-Generates a header for this batch's report 
-
-B<Parameters>
-
-=over
-
-=item $indent? (L<MyTester::Subtypes/PositiveInt) => Indentation level of 
-generated line. Default 0. 
-
-=back
-
-B<Returns:> a header for this batch's report of type 
-L<MyTester::Reports::ReportLine> 
-
-=cut
-
-method buildReportHeader (PositiveInt :$indent? = 0) {
-   return MyTester::Reports::ReportLine->new(
-      indent => $indent,
-      line => "Report for batch '".$self->id()."'");
-}
-
 method _generateDummyReportLine (PositiveInt $columns) {
    my %args = (
       columns => $columns,
@@ -432,6 +406,6 @@ method _generateDummyReportLine (PositiveInt $columns) {
 
 =cut
 
-with qw(MyTester::Roles::Identifiable);
+with qw(MyTester::Roles::GenReport MyTester::Roles::Identifiable);
 
 1;

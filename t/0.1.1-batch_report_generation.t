@@ -41,7 +41,7 @@ my %tests = (
       my $render = $tb->buildReport()->render($indentSize);
       
       my $renderRegex = qr/
-         Report\ for\ batch\ '0'\n
+         .*0.*\n
          \ {$indentSize}\(10\):\ Passed\n
          \ {$indentSize}\(20\):\ Passed\n
          \ {$indentSize}\(30\):\ Passed
@@ -68,13 +68,13 @@ my %tests = (
       my $render = $tb->buildReport(columns => 30)->render();
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'myBatch'\n
-         \ {$indentSize}\(10\/10\):\ Passed\ the\ simple\n
-         test\n
-         \ {$indentSize}\(20\/20\):\ Passed\ the\ simple\n
-         test\n
-         \ {$indentSize}\(30\/30\):\ Passed\ the\ simple\n
-         test
+         .*myBatch.*\n
+            \ {$indentSize}\(10\/10\):\ Passed\ the\ simple\n
+            test\n
+            \ {$indentSize}\(20\/20\):\ Passed\ the\ simple\n
+            test\n
+            \ {$indentSize}\(30\/30\):\ Passed\ the\ simple\n
+            test
       /x;
       
       like($render, $renderRegex, "Generated wrapped report correctly");
@@ -102,7 +102,7 @@ my %tests = (
       my $brokenIndentAmt = index($msgTemplate, ": ") + 2;
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'myBatch'\n
+         .*myBatch.*\n
          \ {3}\(10\/10\):\ Passed\ the\ simple\n
          \ {$brokenIndentAmt}test\n
          \ {3}\(20\/20\):\ Passed\ the\ simple\n
@@ -137,7 +137,7 @@ my %tests = (
       my $render = $tb->buildReport(delimiter => qr/: /)->render();
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'batchWithCannotGrades'\n
+         .*batchWithCannotGrades.*\n
          \ {3}\(10\):\ Passed\ test\ that\ can\ grade\n
          \ {3}.*?\.\n
          \ {3}\(10\):\ Passed\ test\ that\ can\ grade

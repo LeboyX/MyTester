@@ -8,7 +8,7 @@ my @classes = qw(
    TestStatus 
 );
 my @roles = qw(
-   CanGrade Identifiable Testable Provider Dependant
+   CanGrade Identifiable Testable Provider Dependant GenReport
 );
 my @tests = qw(
    Base ExecGrep
