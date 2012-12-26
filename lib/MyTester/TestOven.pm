@@ -693,6 +693,18 @@ method moveTest (TestId $id! does coerce, Int $batchNum!) {
    return $self;
 }
 
+=pod
+
+=head3 Decorations
+
+If you move a L<"dependant test"|MyTester::Roles::Dependant> test into
+the same L<batch|MyTester::TestBatch> or a L<batch|MyTester::TestBatch>
+after its L<provider|MyTester::Roles::Provider> (or vice versa), a 
+warning will be emitted and the dependency between the two will be 
+removed. 
+
+=cut
+
 before 'moveTest' => sub {
    my ($self, $testId, $batchNum) = @_;
 
