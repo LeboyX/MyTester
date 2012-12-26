@@ -20,7 +20,7 @@ No set version right now
 =head1 Description
 
 Wraps up reporting on tests into more than just a simple string. A ReportLine
-encapsulated a single line in a report (duh). It'll handle things like 
+encapsulates a single line in a report (duh). It'll handle things like 
 line-wrapping (if you desire). 
 
 =cut
