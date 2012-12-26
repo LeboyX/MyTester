@@ -203,7 +203,7 @@ has 'brokenLineIndentation' => (
 
 =head1 Construction
 
-ReportLine supports a non-hash constructor if you pass in 1 parameters. Like so:
+ReportLine supports a non-hash constructor if you pass in 1 parameter. Like so:
 
    MyTester::Reports::ReportLine->new("MyLine");
 
