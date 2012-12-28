@@ -16,10 +16,15 @@ my @tests = qw(
 my @reports = qw(
    Report ReportLine
 );
+my @util = qw(
+   IdSet
+);
+
 plan tests => 
    (scalar @classes) +
    (scalar @tests) +
    (scalar @roles) +
+   (scalar @util) + 
    (scalar @reports) +  1;
 
 use_ok( 'MyTester' ) || print "Bail out!\n";
@@ -37,4 +42,8 @@ for my $test (@tests) {
 
 for my $report (@reports) {
    use_ok("MyTester::Reports::$report") || print "Bail out!\n";
+}
+
+for my $util (@util) {
+   use_ok("MyTester::Util::$util") || print "Bail out!\n";
 }
