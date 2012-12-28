@@ -327,6 +327,17 @@ method _handleTestFinished(MyTester::Roles::Testable $t) {
 Does what it sounds like - generates a report of all the tests w/in this batch
 based on their C<testStatus>.
 
+B<Parameters>
+
+=over
+
+=item [0]! L<MyTester::Subtypes/PositiveInt>): Indentation level to put report
+on. While this is required, L<MyTester::Roles::GenReport> silently wraps this
+method to always guarantee this gets passed in, even if you don't pass it
+yourself.
+
+=back
+
 B<Returns:> a report of all the tests w/in this batch based on their 
 C<testStatus>. More specifically, messages and values are retrieved through
 functionality defined in L<MyTester::Roles::CanGrade>.
@@ -378,9 +389,7 @@ B<Parameters>
 =over
 
 =item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
-footer at. While this is required, L<MyTester::Roles::GenReport> silently wraps
-this method to always guarantee this gets passed in, even if you don't pass it
-yourself.
+footer at. 
 
 =back
 
