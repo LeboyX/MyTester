@@ -3,6 +3,7 @@ Build
 .project
 MANIFEST.bak
 bigRedButton.sh
+*.swp
 MYMETA*
 blib/*
 _build/*
