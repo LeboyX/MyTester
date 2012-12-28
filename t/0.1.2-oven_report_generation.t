@@ -46,6 +46,7 @@ my %tests = (
       my $val = 10;
       my $msg = "Passed the test";
       my $oven = genOven(3, 3, $val, $msg);
+      $oven->reportWithFooter(1);
       
       $oven->cookBatches();
       
@@ -53,19 +54,23 @@ my %tests = (
       my $render = $report->render();
       
       my $renderRegex = qr/
-         .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){3}
-         .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){3}
-         .*\n
-            (\ {3}\($val\):\ Passed\ the\ test\n){2}
-            \ {3}\($val\):\ Passed\ the\ test$
+         .*\n # Report header
+            \ {3}.*\n # Batch 1 header
+               (\ {6}\($val\):\ Passed\ the\ test\n){3}
+            \ {3}.*30.*\n # Batch 1 footer
+            
+            \ {3}.*\n # Batch 2 header
+               (\ {6}\($val\):\ Passed\ the\ test\n){3}
+            \ {3}.*30.*\n # Batch 2 footer
+            
+            \ {3}.*\n # Batch 3 header
+               (\ {6}\($val\):\ Passed\ the\ test\n){2}
+               \ {6}\($val\):\ Passed\ the\ test\n
+            \ {3}.*30.*\n # Batch 3 footer
+            
+         .*90.*$ # Report footer
       /x;
-      
-      TODO: {
-         local $TODO = "Empty batch trimming not yet implemented";
-         like($render, $renderRegex, "Report w/ no header build correctly");
-      }  
+      like($render, $renderRegex, "Report w/ no header build correctly");
    },
 );
 

@@ -41,7 +41,7 @@ my %tests = (
       my $render = $tb->buildReport()->render($indentSize);
       
       my $renderRegex = qr/
-         Report\ for\ batch\ '0'\n
+         .*0.*\n
          \ {$indentSize}\(10\):\ Passed\n
          \ {$indentSize}\(20\):\ Passed\n
          \ {$indentSize}\(30\):\ Passed
@@ -50,7 +50,9 @@ my %tests = (
    },
    
    testBatchGeneratedWrappedReport_test => sub {
-      my $tb = MyTester::TestBatch->new(id => 'myBatch');
+      my $tb = MyTester::TestBatch->new(
+         id => 'myBatch',
+         reportColumns => 30);
       
       for (10, 20, 30) {
          my $t = MyTester::Tests::Base->new();
@@ -65,23 +67,26 @@ my %tests = (
       $tb->cookBatch();
       
       my $indentSize = 3; # Default
-      my $render = $tb->buildReport(columns => 30)->render();
+      my $render = $tb->buildReport()->render();
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'myBatch'\n
-         \ {$indentSize}\(10\/10\):\ Passed\ the\ simple\n
-         test\n
-         \ {$indentSize}\(20\/20\):\ Passed\ the\ simple\n
-         test\n
-         \ {$indentSize}\(30\/30\):\ Passed\ the\ simple\n
-         test
+         .*myBatch.*\n
+            \ {$indentSize}\(10\/10\):\ Passed\ the\ simple\n
+            test\n
+            \ {$indentSize}\(20\/20\):\ Passed\ the\ simple\n
+            test\n
+            \ {$indentSize}\(30\/30\):\ Passed\ the\ simple\n
+            test
       /x;
       
       like($render, $renderRegex, "Generated wrapped report correctly");
    },
    
    testBatchReportWithDelimiter_test => sub {
-      my $tb = MyTester::TestBatch->new(id => 'myBatch');
+      my $tb = MyTester::TestBatch->new(
+         id => 'myBatch',
+         reportColumns => 30,
+         reportWrapLineRegex => qr/: /);
       
       for (10, 20, 30) {
          my $t = MyTester::Tests::Base->new();
@@ -95,14 +100,13 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = 
-         $tb->buildReport(columns => 30, delimiter=> qr/: /)->render();
+      my $render = $tb->buildReport()->render();
       
       my $msgTemplate = "   (XX/XX): P";
       my $brokenIndentAmt = index($msgTemplate, ": ") + 2;
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'myBatch'\n
+         .*myBatch.*\n
          \ {3}\(10\/10\):\ Passed\ the\ simple\n
          \ {$brokenIndentAmt}test\n
          \ {3}\(20\/20\):\ Passed\ the\ simple\n
@@ -115,7 +119,9 @@ my %tests = (
    },
    
    testBatchReportWithUngradeable_test => sub {
-      my $tb = MyTester::TestBatch->new(id => "batchWithCannotGrades");
+      my $tb = MyTester::TestBatch->new(
+         id => "batchWithCannotGrades",
+         reportWrapLineRegex => qr/: /);
       
       my $canGrade = MyTester::Tests::Base->new(id => "canGrade1");
       $canGrade->setGrade(
@@ -134,10 +140,10 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = $tb->buildReport(delimiter => qr/: /)->render();
+      my $render = $tb->buildReport()->render();
       
       my $renderRegex = qr/
-         Report\ for\ batch\ 'batchWithCannotGrades'\n
+         .*batchWithCannotGrades.*\n
          \ {3}\(10\):\ Passed\ test\ that\ can\ grade\n
          \ {3}.*?\.\n
          \ {3}\(10\):\ Passed\ test\ that\ can\ grade
@@ -148,7 +154,9 @@ my %tests = (
    },
    
    testBatchReportNoHeader_test => sub {
-      my $tb = MyTester::TestBatch->new(id => "noHeaderBatch");
+      my $tb = MyTester::TestBatch->new(
+         id => "noHeaderBatch",
+         reportWithHeader => 0);
       
       my $gradeMsg = "Passed test that can grade";
       my $gradeVal = 10;
@@ -160,7 +168,7 @@ my %tests = (
       
       $tb->cookBatch();
       
-      my $render = $tb->buildReport(withHeader => 0)->render();
+      my $render = $tb->buildReport()->render();
       my $renderRegex = qr/\($gradeVal\): $gradeMsg/;
       
       like($render, $renderRegex, "Generated report w/ no header");

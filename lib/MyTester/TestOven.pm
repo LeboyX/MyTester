@@ -28,6 +28,22 @@ tests.
 
 A TestOven cannot contain two identical tests (where their id's are the same).
 
+=head1 Roles Consumed
+
+=for comment
+Note that the actual code for this is located at the bottom of the class. See
+L<MooseX::Method::Signatures/"BUGS, CAVEATS AND NOTES"> for why the reasons why.
+
+=head2 MyTester::Roles::Identifiable
+
+=head2 L<MyTester::Roles::GenReport>
+
+Extends L<MyTester::Roles::GenReport/reportWithHeader> and 
+L<MyTester::Roles::GenReport/reportWithFooter> by setting their defaults 
+to true
+
+=head2 L<MyTester::Roles::TrackScores>
+
 =cut
 
 package MyTester::TestOven;
@@ -680,6 +696,18 @@ method moveTest (TestId $id! does coerce, Int $batchNum!) {
    return $self;
 }
 
+=pod
+
+=head3 Decorations
+
+If you move a L<"dependant test"|MyTester::Roles::Dependant> test into
+the same L<batch|MyTester::TestBatch> or a L<batch|MyTester::TestBatch>
+after its L<provider|MyTester::Roles::Provider> (or vice versa), a 
+warning will be emitted and the dependency between the two will be 
+removed. 
+
+=cut
+
 before 'moveTest' => sub {
    my ($self, $testId, $batchNum) = @_;
 
@@ -766,6 +794,7 @@ Kicks off testing. Will run (cook) each batch in this oven one at a time.
 method cookBatches () {
    for my $batch ($self->getBatches()) {
       $batch->cookBatch();
+      $self->addScore($batch, $batch->earned());
    }
    $self->_cooked(1);
 }
@@ -785,50 +814,93 @@ before 'cookBatches' => sub {
 
 =pod
 
-TODO
+=head2 buildReport
+
+Builds a report summarizing all the L<batches|MyTester::TestBatch> objects 
+inside this object. Basically wraps calling L<MyTester::TestBatch/buildReport>
+for all the batches in this object.
+
+B<Returns:> the L<report|MyTester::Reports::Report> generated
 
 =cut
 
-method buildReport (
-      PositiveInt :$indent? = 0,
-      PositiveInt :$columns? = 80,
-      RegexpRef :$delimiter?) {
+method buildReport (PositiveInt :$indent!){
    my $r = MyTester::Reports::Report->new();
    
-   my %args = (
-      indent => $indent,
-      columns => $columns
-   );
-   $args{delimiter} = $delimiter if defined $delimiter;
-   
    for my $batch ($self->getBatches()) {
-      $r->catReport($batch->buildReport(%args)); 
+      $batch->reportBaseIndent($indent);
+      $batch->reportColumns($self->reportColumns());
+      
+      if ($self->wrapLineRegexDefined()) {
+         $batch->reportWrapLineRegex($self->reportWrapLineRegex());
+      }
+      
+      $r->catReport($batch->buildReport()); 
    }
    
    return $r;
 }
+
+=pod
+
+=head3 Decorations
+   
+Croaks if this oven has not yet been cooked via L</cookBatches>.
+   
+=cut
 
 before 'buildReport' => sub {
    my ($self) = @_;
    
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
 };
+
+=pod
+
+=head2 buildReportFooter
+
+B<Parameters>
+
+=over
+
+=item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
+footer at. While this is required, L<MyTester::Roles::GenReport> silently wraps
+this method to always guarantee this gets passed in, even if you don't pass it
+yourself.
+
+=back
+
+B<Returns:> L<footer|MyTester::Reports::ReportLine>
+
+=cut
+
+method buildReportFooter (PositiveInt :$indent?) {
+   my $line = "Report Summary for '".$self->id()."': ".$self->earned();
+   if ($self->maxValid()) {
+      $line .= "/".$self->max();
+   }
+   $line .= " points";
+   
+   return MyTester::Reports::ReportLine->new(
+      indent => $indent,
+      line => $line);
+}
+
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
 
-=pod
+with qw(
+   MyTester::Roles::Identifiable 
+   MyTester::Roles::GenReport
+   MyTester::Roles::TrackScores
+);
 
-=head1 Roles Consumed
-
-=over
-
-=item MyTester::Roles::Identifiable
-
-=back
-
-=cut
-
-with qw(MyTester::Roles::Identifiable);
+has '+reportWithHeader' => (
+   default => 1,
+);
+has '+reportWithFooter' => (
+   default => 1,
+);
 
 1;

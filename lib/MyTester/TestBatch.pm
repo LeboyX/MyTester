@@ -27,13 +27,30 @@ No set version right now
    
 =head1 Description
 
-This of tests as cookies and a L<MyTester::TestBatch> as the cookie sheet they
-go on in the oven. Each tests begin at (or nearly at) the same time as all the
-other tests. In practice, this won't be perfect b/c of the overhead needed to
-fork and manage the various tests. Furthermore, if you don't want to burden
-the system, you can limit how many tests are run at a given time.  
+This treats L<tests|MyTester::Roles::Testable> as cookies and a 
+L<MyTester::TestBatch> as the cookie sheet they go on in the oven. Each test 
+begins at (or nearly at) the same time as all the other tests. In practice, 
+this won't be perfect b/c of the overhead needed to fork and manage the 
+various tests. Furthermore, if you don't want to burden the system, you can 
+limit how many tests are run at a given time.  
 
 See L<Parallel::ForkManager> for details on how we manage our forked tests. 
+
+=head1 Roles Consumed
+
+=for comment
+Note that the actual code for this is located at the bottom of the class. See
+L<MooseX::Method::Signatures/"BUGS, CAVEATS AND NOTES"> for why the reasons why.
+
+=head2 L<MyTester::Roles::Identifiable>
+
+=head2 L<MyTester::Roles::GenReport>
+
+Extends L<MyTester::Roles::GenReport/reportWithHeader> and 
+L<MyTester::Roles::GenReport/reportWithFooter> by setting their defaults 
+to true
+
+=head2 L<MyTester::Roles::TrackScores>
 
 =cut
 
@@ -263,7 +280,7 @@ method cookBatch () {
           $exit_signal, 
           $core_dump, 
           $test) = @_;
-       %{$self->getTest($id)} = %{$test}; #TODO: Fix this!
+       $self->_handleTestFinished($test);
    });
    
    for my $test ($self->getTests()) {
@@ -291,6 +308,19 @@ before 'cookBatch' => sub {
    }
 };
 
+method _handleTestFinished(MyTester::Roles::Testable $t) {
+   my $id = $t->id();
+   
+   %{$self->getTest($id)} = %{$t}; #TODO: Fix this!
+   
+   if ($t->DOES("MyTester::Roles::CanGrade")) {
+      my $status = $t->testStatus();
+      if ($t->hasGrade($status)) {
+         $self->addScore($id, $t->getGradeVal($t->testStatus()));
+      }
+   }
+}
+
 =pod
 
 =head2 buildReport
@@ -302,57 +332,32 @@ B<Parameters>
 
 =over
 
-=item * $withHeader? (Bool) => Whether to include a header for this report. 
-Default 0. If true, will indent all of this report's lines in an extra level of
-indentation, putting only the header at the given indentation level. I.e
-
-=over
-
-   Your header # Indent level N
-      Report 1 # Indent level N + 1
-      Report 2
-      ...
-      
-=back
-
-=item * $indent? (L<MyTester::Subtypes/PositiveInt>) => The indentation level to
-to put this report on. Default 0
-
-=item * $columns? (L<MyTester::Subtypes/PositiveInt>) => The number of columns 
-each report line will be wrapped on. Default 80.
-
-=item * $delimeter? (RegexpRef) => If provided, will be matched against all
-L<MyTester::Reports::ReportLine> objects to determine how much indentation to
-give to the parts of the lines that wrap past C<columns>. See 
-L<MyTester::Reports::ReportLine/computeBrokenLineIndentation>.
+=item [0]! L<MyTester::Subtypes/PositiveInt>): Indentation level to put report
+on. While this is required, L<MyTester::Roles::GenReport> silently wraps this
+method to always guarantee this gets passed in, even if you don't pass it
+yourself.
 
 =back
 
 B<Returns:> a report of all the tests w/in this batch based on their 
-C<testStatus>
+C<testStatus>. More specifically, messages and values are retrieved through
+functionality defined in L<MyTester::Roles::CanGrade>.
 
 =cut
 
-method buildReport (
-      Bool :$withHeader? = 1,
-      PositiveInt :$indent? = 0,
-      PositiveInt :$columns? = 80,
-      RegexpRef :$delimiter?) {
-   my $curIndent = $indent; 
-   my $report = MyTester::Reports::Report->new(columns => $columns);
+method buildReport (PositiveInt :$indent!) {
+   my $report = MyTester::Reports::Report->new(
+      columns => $self->reportColumns());
    
-   if ($withHeader) {
-      $report->header($self->buildReportHeader(indent => $curIndent ++));
-   }
-       
    for my $test ($self->getTests()) {
       my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
          ? $test->genReport($test->testStatus())
-         : $self->_generateDummyReportLine($columns);
+         : $self->_generateDummyReportLine($self->reportColumns());
          
-      $testReportLine->indent($curIndent);
-      if (defined $delimiter) {
-         $testReportLine->computeBrokenLineIndentation($delimiter);
+      $testReportLine->indent($indent);
+      if ($self->wrapLineRegexDefined()) {
+         $testReportLine->computeBrokenLineIndentation(
+            $self->reportWrapLineRegex());
       }
       
       $report->addLines($testReportLine);
@@ -378,28 +383,31 @@ before 'buildReport' => sub {
 
 =pod
 
-=head2 buildReportHeader
-
-Generates a header for this batch's report 
+=head2 buildReportFooter
 
 B<Parameters>
 
 =over
 
-=item $indent? (L<MyTester::Subtypes/PositiveInt) => Indentation level of 
-generated line. Default 0. 
+=item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
+footer at. 
 
 =back
 
-B<Returns:> a header for this batch's report of type 
-L<MyTester::Reports::ReportLine> 
+B<Returns:> L<footer|MyTester::Reports::ReportLine>
 
 =cut
 
-method buildReportHeader (PositiveInt :$indent? = 0) {
+method buildReportFooter (PositiveInt :$indent?) {
+   my $line = "Report Summary for '".$self->id()."': ".$self->earned();
+   if ($self->maxValid()) {
+      $line .= "/".$self->max();
+   }
+   $line .= " points";
+   
    return MyTester::Reports::ReportLine->new(
       indent => $indent,
-      line => "Report for batch '".$self->id()."'");
+      line => $line);
 }
 
 method _generateDummyReportLine (PositiveInt $columns) {
@@ -420,18 +428,17 @@ method _generateDummyReportLine (PositiveInt $columns) {
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
 
-=pod
+with qw(
+   MyTester::Roles::GenReport 
+   MyTester::Roles::Identifiable
+   MyTester::Roles::TrackScores
+);
 
-=head1 Roles Consumed
-
-=over
-
-=item MyTester::Roles::Identifiable
-
-=back
-
-=cut
-
-with qw(MyTester::Roles::Identifiable);
+has '+reportWithHeader' => (
+   default => 1,
+);
+has '+reportWithFooter' => (
+   default => 1,
+);
 
 1;
