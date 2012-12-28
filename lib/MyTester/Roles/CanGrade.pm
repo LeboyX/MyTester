@@ -200,7 +200,7 @@ you didn't provide this parameter at all
 
 =back
 
-B<Returns:> the grade report for the status provided in [0]. In [0] didn't map
+B<Returns:> the grade report for the status provided in [0]. If [0] didn't map
 to a status, will croak 
 
 =cut
