@@ -852,7 +852,9 @@ B<Parameters>
 =over
 
 =item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
-footer at. 
+footer at. While this is required, L<MyTester::Roles::GenReport> silently wraps
+this method to always guarantee this gets passed in, even if you don't pass it
+yourself.
 
 =back
 
