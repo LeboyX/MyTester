@@ -131,7 +131,7 @@ method addDeps (MyTester::Roles::Dependant @deps!) {
 
 =pod
 
-=head2 addDeps
+=head2 delDeps
 
 Delete dependants from this provider. Will not try to remove things that aren't
 there.
