@@ -27,11 +27,12 @@ No set version right now
    
 =head1 Description
 
-This of tests as cookies and a L<MyTester::TestBatch> as the cookie sheet they
-go on in the oven. Each tests begin at (or nearly at) the same time as all the
-other tests. In practice, this won't be perfect b/c of the overhead needed to
-fork and manage the various tests. Furthermore, if you don't want to burden
-the system, you can limit how many tests are run at a given time.  
+This treats L<tests|MyTester::Roles::Testable> as cookies and a 
+L<MyTester::TestBatch> as the cookie sheet they go on in the oven. Each test 
+begins at (or nearly at) the same time as all the other tests. In practice, 
+this won't be perfect b/c of the overhead needed to fork and manage the 
+various tests. Furthermore, if you don't want to burden the system, you can 
+limit how many tests are run at a given time.  
 
 See L<Parallel::ForkManager> for details on how we manage our forked tests. 
 
