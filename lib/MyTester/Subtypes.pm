@@ -95,4 +95,23 @@ subtype 'PositiveInt',
    where { $_ > -1 },
    message { "Number must be > -1" };
 
+=pod
+
+=head2 MyTester::QuickId
+
+   subtype 'MyTester::QuickId', as 'Str';
+   coerce 'MyTester::QuickId',
+      from 'MyTester::Roles::Identifiable',
+      via { $_->id(); };
+
+A trivial convenience subtype to simplify extracting id's from 
+L<identifiable|MyTester::Roles::Identifiable> classes.
+
+=cut
+
+subtype 'MyTester::QuickId', as 'Str';
+coerce 'MyTester::QuickId',
+   from 'MyTester::Roles::Identifiable',
+   via { $_->id(); };
+
 1;

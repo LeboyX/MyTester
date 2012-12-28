@@ -30,6 +30,7 @@ use MooseX::StrictConstructor;
 # Imports
 ################################################################################
 use Carp;
+use Data::Dumper;
 use TryCatch;
 
 use MyTester::Subtypes;
@@ -162,7 +163,14 @@ has 'reportWrapLineRegex' => (
 
 Builds a report.
 
-B<Returns:> L<MyTester::Reports::Report>
+B<Returns:> L<report|MyTester::Reports::Report>
+
+=head3 Decorations
+
+If you've set L</reportWithHeader> and/or L</reportWithFooter>, the 
+L<header|MyTester::Reports::Report/header> and/or
+L<footer|MyTester::Reports::Report/footer>
+will be appropriately set in the returned L<report|MyTester::Reports::Report>. 
 
 =cut
 
@@ -181,13 +189,36 @@ B<Parameters>
 =over
 
 =item $indent? (L<MyTester::Subtypes/PositiveInt) => Indentation level of 
-generated line. Default 0. 
+generated line. Default 0. Will override L</reportBaseIndent>, even if it's set.
 
 =back
 
 B<Returns:> a L<header|MyTester::Reports::ReportLine> for this report 
 
+=head3 Decorations
+
 =cut
+
+around 'buildReport' => sub {
+   my ($orig, $self, %args) = @_;
+   
+   my $baseIndent = $args{indent} // $self->reportBaseIndent();
+   my $bodyIndent = $baseIndent;
+   if ($self->reportWithHeader() || $self->reportWithFooter()) {
+      $bodyIndent ++;
+   }
+   
+   my $report = $self->$orig(%args, indent => $bodyIndent);
+   
+   if ($self->reportWithHeader()) {
+      $report->header($self->buildReportHeader(indent => $baseIndent));
+   }
+   if ($self->reportWithFooter()) {
+      $report->footer($self->buildReportFooter(indent => $baseIndent));
+   }
+   
+   return $report;
+};
 
 method buildReportHeader (PositiveInt :$indent? = 0) {
    return MyTester::Reports::ReportLine->new(
@@ -197,12 +228,24 @@ method buildReportHeader (PositiveInt :$indent? = 0) {
 
 =pod
 
-Not yet implemented
+=head2 buildReportFooter
+
+Generates a footer for a report 
+
+B<Parameters>
+
+=over
+
+=item $indent? (L<MyTester::Subtypes/PositiveInt) => Indentation level of 
+generated line. Default 0. 
+
+=back
+
+B<Returns:> a L<footer|MyTester::Reports::ReportLine> for this report 
 
 =cut
 
 method buildReportFooter (PositiveInt :$indent? = 0) {
-   ...;
    return MyTester::Reports::ReportLine->new(
       indent => $indent,
       line => "End report for '".$self->id()."'");

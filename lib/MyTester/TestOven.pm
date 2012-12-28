@@ -38,8 +38,11 @@ L<MooseX::Method::Signatures/"BUGS, CAVEATS AND NOTES"> for why the reasons why.
 
 =head2 L<MyTester::Roles::GenReport>
 
-Extends L<MyTester::Roles::GenReport/reportWithHeader> by setting its default 
+Extends L<MyTester::Roles::GenReport/reportWithHeader> and 
+L<MyTester::Roles::GenReport/reportWithFooter> by setting their defaults 
 to true
+
+=head2 L<MyTester::Roles::TrackScores>
 
 =cut
 
@@ -779,6 +782,7 @@ Kicks off testing. Will run (cook) each batch in this oven one at a time.
 method cookBatches () {
    for my $batch ($self->getBatches()) {
       $batch->cookBatch();
+      $self->addScore($batch, $batch->earned());
    }
    $self->_cooked(1);
 }
@@ -808,19 +812,11 @@ B<Returns:> the L<report|MyTester::Reports::Report> generated
 
 =cut
 
-method buildReport () {
+method buildReport (PositiveInt :$indent!){
    my $r = MyTester::Reports::Report->new();
    
-   my $baseIndent = $self->reportBaseIndent();
-   my $bodyIndent = $baseIndent;
-   
-   if ($self->reportWithHeader()) {
-      $r->addLines($self->buildReportHeader(indent => $baseIndent));
-      $bodyIndent = $baseIndent + 1;
-   }
-   
    for my $batch ($self->getBatches()) {
-      $batch->reportBaseIndent($bodyIndent);
+      $batch->reportBaseIndent($indent);
       $batch->reportColumns($self->reportColumns());
       
       if ($self->wrapLineRegexDefined()) {
@@ -828,10 +824,6 @@ method buildReport () {
       }
       
       $r->catReport($batch->buildReport()); 
-   }
-   
-   if ($self->reportWithFooter()) {
-      $r->addLines($self->buildReportFooter(indent => $baseIndent));
    }
    
    return $r;
@@ -851,13 +843,49 @@ before 'buildReport' => sub {
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
 };
 
+=pod
+
+=head2 buildReportFooter
+
+B<Parameters>
+
+=over
+
+=item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
+footer at. 
+
+=back
+
+B<Returns:> L<footer|MyTester::Reports::ReportLine>
+
+=cut
+
+method buildReportFooter (PositiveInt :$indent?) {
+   my $line = "Report Summary for '".$self->id()."': ".$self->earned();
+   if ($self->maxValid()) {
+      $line .= "/".$self->max();
+   }
+   $line .= " points";
+   
+   return MyTester::Reports::ReportLine->new(
+      indent => $indent,
+      line => $line);
+}
+
 ################################################################################
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
 
-with qw(MyTester::Roles::Identifiable MyTester::Roles::GenReport);
+with qw(
+   MyTester::Roles::Identifiable 
+   MyTester::Roles::GenReport
+   MyTester::Roles::TrackScores
+);
 
 has '+reportWithHeader' => (
+   default => 1,
+);
+has '+reportWithFooter' => (
    default => 1,
 );
 

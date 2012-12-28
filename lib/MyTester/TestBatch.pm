@@ -45,8 +45,11 @@ L<MooseX::Method::Signatures/"BUGS, CAVEATS AND NOTES"> for why the reasons why.
 
 =head2 L<MyTester::Roles::GenReport>
 
-Extends L<MyTester::Roles::GenReport/reportWithHeader> by setting its default 
+Extends L<MyTester::Roles::GenReport/reportWithHeader> and 
+L<MyTester::Roles::GenReport/reportWithFooter> by setting their defaults 
 to true
+
+=head2 L<MyTester::Roles::TrackScores>
 
 =cut
 
@@ -276,7 +279,7 @@ method cookBatch () {
           $exit_signal, 
           $core_dump, 
           $test) = @_;
-       %{$self->getTest($id)} = %{$test}; #TODO: Fix this!
+       $self->_handleTestFinished($test);
    });
    
    for my $test ($self->getTests()) {
@@ -304,6 +307,19 @@ before 'cookBatch' => sub {
    }
 };
 
+method _handleTestFinished(MyTester::Roles::Testable $t) {
+   my $id = $t->id();
+   
+   %{$self->getTest($id)} = %{$t}; #TODO: Fix this!
+   
+   if ($t->DOES("MyTester::Roles::CanGrade")) {
+      my $status = $t->testStatus();
+      if ($t->hasGrade($status)) {
+         $self->addScore($id, $t->getGradeVal($t->testStatus()));
+      }
+   }
+}
+
 =pod
 
 =head2 buildReport
@@ -317,21 +333,16 @@ functionality defined in L<MyTester::Roles::CanGrade>.
 
 =cut
 
-method buildReport () {
-   my $curIndent = $self->reportBaseIndent(); 
+method buildReport (PositiveInt :$indent!) {
    my $report = MyTester::Reports::Report->new(
       columns => $self->reportColumns());
    
-   if ($self->reportWithHeader()) {
-      $report->header($self->buildReportHeader(indent => $curIndent ++));
-   }
-       
    for my $test ($self->getTests()) {
       my $testReportLine = ($test->DOES("MyTester::Roles::CanGrade"))
          ? $test->genReport($test->testStatus())
          : $self->_generateDummyReportLine($self->reportColumns());
          
-      $testReportLine->indent($curIndent);
+      $testReportLine->indent($indent);
       if ($self->wrapLineRegexDefined()) {
          $testReportLine->computeBrokenLineIndentation(
             $self->reportWrapLineRegex());
@@ -358,6 +369,37 @@ before 'buildReport' => sub {
    croak "Cannot generate report for uncooked batch" if !$self->cooked();
 };
 
+=pod
+
+=head2 buildReportFooter
+
+B<Parameters>
+
+=over
+
+=item $indent! (L<MyTester::Subtypes/PositiveInt>): Indentation level to put 
+footer at. While this is required, L<MyTester::Roles::GenReport> silently wraps
+this method to always guarantee this gets passed in, even if you don't pass it
+yourself.
+
+=back
+
+B<Returns:> L<footer|MyTester::Reports::ReportLine>
+
+=cut
+
+method buildReportFooter (PositiveInt :$indent?) {
+   my $line = "Report Summary for '".$self->id()."': ".$self->earned();
+   if ($self->maxValid()) {
+      $line .= "/".$self->max();
+   }
+   $line .= " points";
+   
+   return MyTester::Reports::ReportLine->new(
+      indent => $indent,
+      line => $line);
+}
+
 method _generateDummyReportLine (PositiveInt $columns) {
    my %args = (
       columns => $columns,
@@ -376,9 +418,16 @@ method _generateDummyReportLine (PositiveInt $columns) {
 # Roles (put here to compile properly w/ Moose)
 ################################################################################
 
-with qw(MyTester::Roles::GenReport MyTester::Roles::Identifiable);
+with qw(
+   MyTester::Roles::GenReport 
+   MyTester::Roles::Identifiable
+   MyTester::Roles::TrackScores
+);
 
 has '+reportWithHeader' => (
+   default => 1,
+);
+has '+reportWithFooter' => (
    default => 1,
 );
 
