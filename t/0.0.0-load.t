@@ -2,48 +2,19 @@
 use Modern::Perl '2012';
 use Test::More;
 use MyTester;
+use File::Find qw(find);
 
-my @classes = qw(
-   CompilerForC ExecEx ExecFlag File Grade Subtypes TestBatch TestOven 
-   TestStatus 
-);
-my @roles = qw(
-   CanGrade Identifiable Testable Provider Dependant GenReport TrackScores
-);
-my @tests = qw(
-   Base ExecGrep
-);
-my @reports = qw(
-   Report ReportLine
-);
-my @util = qw(
-   IdSet
-);
+my @modules = ();
+find(sub {
+   my $name = $File::Find::name;
+   if ($name =~ s/\.pm$//) {
+      $name =~ s/^.*(MyTester.*)/$1/;
+      $name =~ s/\//::/g;
+      push (@modules, $name);
+   }
+}, "lib/");
 
-plan tests => 
-   (scalar @classes) +
-   (scalar @tests) +
-   (scalar @roles) +
-   (scalar @util) + 
-   (scalar @reports) +  1;
-
-use_ok( 'MyTester' ) || print "Bail out!\n";
-for my $class (@classes) {
-   use_ok("MyTester::$class") || print "Bail out!\n";
-}
-
-for my $role (@roles) {
-   use_ok("MyTester::Roles::$role") || print "Bail out!\n";
-}
-
-for my $test (@tests) {
-   use_ok("MyTester::Tests::$test") || print "Bail out!\n";
-}
-
-for my $report (@reports) {
-   use_ok("MyTester::Reports::$report") || print "Bail out!\n";
-}
-
-for my $util (@util) {
-   use_ok("MyTester::Util::$util") || print "Bail out!\n";
+plan tests => (scalar @modules);
+for (@modules) {
+   use_ok($_) || print "Bail out!\n";
 }

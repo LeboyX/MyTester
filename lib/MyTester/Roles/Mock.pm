@@ -18,3 +18,5 @@ contained w/in this namespace are not explicitly tested, as their intended
 purpose is to aid testing.  
 
 =cut
+
+1;
