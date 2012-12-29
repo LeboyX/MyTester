@@ -138,7 +138,8 @@ For example, if a 'compile' test should fail, the executable it was to generate
 will not exist. All tests which depended on that executable will obviously fail,
 but not for an obvious reason (i.e. tests that fail mean the code performed its
 task incorrectly). With a dependency, tests can react and refuse to run and set 
-their status accordingly).
+their status accordingly.
 
+=head1 TODO
 
-TODO: More to follow
+More to follow
