@@ -128,13 +128,13 @@ in mind.
 
 Actual tests go into a L<MyTester::TestBatch> object and must consume the 
 L<MyTester::Roles::Testable> role. As a convenience, a default implementation 
-of this role exists as a L<"base test"|MyTester::Tests::Base>. However, it 
+of this role exists as a L<base test|MyTester::Tests::Base>. However, it 
 consumes an additional role: L<MyTester::Roles::CanGrade>. 
 
 When grading students, it was near-always the case that they must receive some
 score for each test run on their code. By consuming 
-L<MyTester::Roles::CanGrade>, L<MyTester::TestBatch> (and L<MyTester::TestOven, 
-by extension>) can track actual test scores and include those scores in the
+L<MyTester::Roles::CanGrade>, L<MyTester::TestBatch> (and L<MyTester::TestOven> 
+by extension) can track actual test scores and include those scores in the
 L<reports|MyTester::Reports::Report> they generate. 
 
 =head2 Creating Dependncies
